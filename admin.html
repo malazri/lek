@@ -6,6 +6,7 @@
   <title>BaseCamp Admin Dashboard</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <!-- Supabase library – load FIRST -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     /* ===== Base styles (same as resident app) ===== */
@@ -453,36 +454,33 @@
 
 <script>
   // ============================================================
-  //  SUPABASE CONFIGURATION
+  //  SUPABASE CONFIGURATION – replace with your own
   // ============================================================
-  const SUPABASE_URL = 'https://mywcoynuakmfafzgzlzr.supabaseAdmin.co';
+  const SUPABASE_URL = 'https://mywcoynuakmfafzgzlzr.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15d2NveW51YWttZmFmemd6bHpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY1NDc3MjUsImV4cCI6MjEwMjEyMzcyNX0.xLWIUEVq2y_90f__QYPaJyPN7KGMqvBT1RfuwC660Ng';
-  
-  
-    // --- SAFETY CHECK ---
-    let supabaseAdmin;
-    try {
-      // Try both possible globals
-      const lib = window.supabase || window.Supabase;
-      if (!lib || typeof lib.createClient !== 'function') {
-        throw new Error('Supabase library not loaded correctly');
-      }
-      supabaseAdmin = lib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-    } catch (err) {
-      document.body.innerHTML = `
-        <div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0a0d13;color:#f5f3ec;font-family:Inter,sans-serif;text-align:center;padding:20px;">
-          <div>
-            <h1 style="font-size:1.8rem;margin-bottom:16px;">⚠️ Connection Error</h1>
-            <p style="font-size:1rem;color:#8d93a6;max-width:400px;margin:0 auto;">
-              The Supabase client could not be initialised. Please check your internet connection and reload.
-            </p>
-            <button onclick="location.reload()" style="margin-top:20px;padding:12px 28px;background:#ff7a1a;border:none;border-radius:12px;color:#1a0d02;font-weight:700;font-size:1rem;cursor:pointer;">Reload Page</button>
-          </div>
-        </div>
-      `;
-      // Stop execution
-      throw err;
+
+  // ============================================================
+  //  INITIALIZE SUPABASE CLIENT WITH ERROR HANDLING
+  // ============================================================
+  let supabaseAdmin;
+  try {
+    const lib = window.supabase || window.Supabase;
+    if (!lib || typeof lib.createClient !== 'function') {
+      throw new Error('Supabase library not loaded properly.');
     }
+    supabaseAdmin = lib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  } catch (err) {
+    document.body.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0a0d13;color:#f5f3ec;font-family:Inter,sans-serif;text-align:center;padding:20px;">
+        <div>
+          <h1 style="font-size:1.8rem;margin-bottom:16px;">⚠️ Supabase Initialisation Failed</h1>
+          <p style="font-size:1rem;color:#8d93a6;max-width:400px;margin:0 auto;">${err.message}</p>
+          <button onclick="location.reload()" style="margin-top:20px;padding:12px 28px;background:#ff7a1a;border:none;border-radius:12px;color:#1a0d02;font-weight:700;font-size:1rem;cursor:pointer;">Reload Page</button>
+        </div>
+      </div>
+    `;
+    throw err;
+  }
 
   // ============================================================
   //  GLOBAL STATE
@@ -492,11 +490,11 @@
   let languages = [];
   let currentLang = 'en';
   let allStaticKeys = [];
-  let editingItem = null; // for dynamic content edit
+  let prayerTimes = [];
+  let adminActiveDay = 'Sat';
   const PRAYER_ORDER = ['Fajr','Dhuhr','Asr','Maghrib','Isha'];
   const DAYS = ['Sat','Sun','Mon','Tue','Wed','Thu','Fri'];
   const MEALS = ['Breakfast','Lunch','Dinner'];
-  let adminActiveDay = 'Sat';
 
   // ============================================================
   //  TOAST HELPER
@@ -558,6 +556,7 @@
   }
 
   document.getElementById('logout-btn').addEventListener('click', logout);
+  document.getElementById('login-form').addEventListener('submit', login);
 
   // ============================================================
   //  TAB SWITCHING
@@ -569,18 +568,20 @@
       const tab = li.dataset.tab;
       document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
       document.getElementById('tab-' + tab).classList.add('active');
-      // Refresh content on tab switch
-      if (tab === 'languages') loadLanguages();
-      else if (tab === 'translations') loadTranslationsUI();
-      else if (tab === 'announcements') loadAnnouncementsAdmin();
-      else if (tab === 'events') loadEventsAdmin();
-      else if (tab === 'facilities') loadFacilitiesAdmin();
-      else if (tab === 'prayer') loadPrayerAdmin();
-      else if (tab === 'menu') loadMenuAdmin();
-      else if (tab === 'transport') loadTransportAdmin();
-      else if (tab === 'contacts') loadContactsAdmin();
-      else if (tab === 'settings') loadSettings();
-      else if (tab === 'dashboard') updateDashboardStats();
+      // Refresh content
+      switch (tab) {
+        case 'languages': loadLanguages(); break;
+        case 'translations': loadTranslationsUI(); break;
+        case 'announcements': loadAnnouncementsAdmin(); break;
+        case 'events': loadEventsAdmin(); break;
+        case 'facilities': loadFacilitiesAdmin(); break;
+        case 'prayer': loadPrayerAdmin(); break;
+        case 'menu': loadMenuAdmin(); break;
+        case 'transport': loadTransportAdmin(); break;
+        case 'contacts': loadContactsAdmin(); break;
+        case 'settings': loadSettings(); break;
+        case 'dashboard': updateDashboardStats(); break;
+      }
     });
   });
 
@@ -588,64 +589,71 @@
   //  LOAD ALL DATA (initial)
   // ============================================================
   async function loadAllData() {
-    await loadLanguages();
-    await loadStaticKeys();
-    await loadAnnouncementsAdmin();
-    await loadEventsAdmin();
-    await loadFacilitiesAdmin();
-    await loadPrayerAdmin();
-    await loadMenuAdmin();
-    await loadTransportAdmin();
-    await loadContactsAdmin();
-    await loadSettings();
-    updateDashboardStats();
-    // Trigger first tab content
-    document.querySelector('.admin-sidebar li.active')?.click();
+    try {
+      await loadLanguages();
+      await loadStaticKeys();
+      await loadAnnouncementsAdmin();
+      await loadEventsAdmin();
+      await loadFacilitiesAdmin();
+      await loadPrayerAdmin();
+      await loadMenuAdmin();
+      await loadTransportAdmin();
+      await loadContactsAdmin();
+      await loadSettings();
+      await updateDashboardStats();
+    } catch (err) {
+      toast('Error', 'Failed to load data: ' + err.message);
+    }
   }
 
   // ============================================================
   //  DASHBOARD STATS
   // ============================================================
   async function updateDashboardStats() {
-    const { count: langCount } = await supabaseAdmin.from('languages').select('*', { count: 'exact', head: true });
-    const { count: annCount } = await supabaseAdmin.from('announcements').select('*', { count: 'exact', head: true });
-    const { count: evCount } = await supabaseAdmin.from('events').select('*', { count: 'exact', head: true });
-    const { count: facCount } = await supabaseAdmin.from('facilities').select('*', { count: 'exact', head: true });
-    document.getElementById('stats-languages').textContent = langCount || 0;
-    document.getElementById('stats-announcements').textContent = annCount || 0;
-    document.getElementById('stats-events').textContent = evCount || 0;
-    document.getElementById('stats-facilities').textContent = facCount || 0;
+    try {
+      const { count: langCount } = await supabaseAdmin.from('languages').select('*', { count: 'exact', head: true });
+      const { count: annCount } = await supabaseAdmin.from('announcements').select('*', { count: 'exact', head: true });
+      const { count: evCount } = await supabaseAdmin.from('events').select('*', { count: 'exact', head: true });
+      const { count: facCount } = await supabaseAdmin.from('facilities').select('*', { count: 'exact', head: true });
+      document.getElementById('stats-languages').textContent = langCount || 0;
+      document.getElementById('stats-announcements').textContent = annCount || 0;
+      document.getElementById('stats-events').textContent = evCount || 0;
+      document.getElementById('stats-facilities').textContent = facCount || 0;
+    } catch (_) { /* ignore */ }
   }
 
   // ============================================================
   //  LANGUAGES CRUD
   // ============================================================
   async function loadLanguages() {
-    const { data } = await supabaseAdmin.from('languages').select('*').order('code');
-    languages = data || [];
-    const container = document.getElementById('languages-list');
-    container.innerHTML = languages.map(l => `
-      <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border-soft);">
-        <span>${l.flag || ''} ${l.name} <code style="color:var(--text-dim);font-size:0.8rem;">${l.code}</code> ${l.is_default ? '⭐' : ''}</span>
-        <div>
-          <button class="btn btn-secondary btn-sm" onclick="setDefaultLanguage('${l.code}')">Set Default</button>
-          <button class="btn btn-danger btn-sm" onclick="deleteLanguage('${l.code}')">Delete</button>
+    try {
+      const { data, error } = await supabaseAdmin.from('languages').select('*').order('code');
+      if (error) throw error;
+      languages = data || [];
+      const container = document.getElementById('languages-list');
+      container.innerHTML = languages.map(l => `
+        <div style="display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid var(--border-soft);">
+          <span>${l.flag || ''} ${l.name} <code style="color:var(--text-dim);font-size:0.8rem;">${l.code}</code> ${l.is_default ? '⭐' : ''}</span>
+          <div>
+            <button class="btn btn-secondary btn-sm" onclick="setDefaultLanguage('${l.code}')">Set Default</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteLanguage('${l.code}')">Delete</button>
+          </div>
         </div>
-      </div>
-    `).join('');
-    // Populate language selectors
-    document.querySelectorAll('.lang-select').forEach(sel => {
-      const current = sel.dataset.lang || 'en';
-      sel.innerHTML = languages.map(l => `<option value="${l.code}" ${l.code===current?'selected':''}>${l.name}</option>`).join('');
-    });
-    // Update translator language select
-    const transSel = document.getElementById('trans-lang-select');
-    if (transSel) {
-      const currentVal = transSel.value || 'en';
-      transSel.innerHTML = languages.map(l => `<option value="${l.code}" ${l.code===currentVal?'selected':''}>${l.name}</option>`).join('');
+      `).join('');
+      // Populate language selectors
+      document.querySelectorAll('.lang-select').forEach(sel => {
+        const current = sel.dataset.lang || 'en';
+        sel.innerHTML = languages.map(l => `<option value="${l.code}" ${l.code===current?'selected':''}>${l.name}</option>`).join('');
+      });
+      const transSel = document.getElementById('trans-lang-select');
+      if (transSel) {
+        const currentVal = transSel.value || 'en';
+        transSel.innerHTML = languages.map(l => `<option value="${l.code}" ${l.code===currentVal?'selected':''}>${l.name}</option>`).join('');
+      }
+      document.getElementById('stats-languages').textContent = languages.length;
+    } catch (err) {
+      toast('Error', 'Failed to load languages: ' + err.message);
     }
-    // Update dashboard stats
-    document.getElementById('stats-languages').textContent = languages.length;
   }
 
   async function addLanguage() {
@@ -653,42 +661,55 @@
     const name = document.getElementById('new-lang-name').value.trim();
     const flag = document.getElementById('new-lang-flag').value.trim();
     if (!code || !name) { toast('Error', 'Code and name required.'); return; }
-    const { error } = await supabaseAdmin.from('languages').insert({ code, name, flag });
-    if (error) { toast('Error', error.message); return; }
-    document.getElementById('new-lang-code').value = '';
-    document.getElementById('new-lang-name').value = '';
-    document.getElementById('new-lang-flag').value = '';
-    loadLanguages();
-    toast('Success', 'Language added.');
+    try {
+      const { error } = await supabaseAdmin.from('languages').insert({ code, name, flag });
+      if (error) throw error;
+      document.getElementById('new-lang-code').value = '';
+      document.getElementById('new-lang-name').value = '';
+      document.getElementById('new-lang-flag').value = '';
+      loadLanguages();
+      toast('Success', 'Language added.');
+    } catch (err) {
+      toast('Error', err.message);
+    }
   }
 
   async function setDefaultLanguage(code) {
-    await supabaseAdmin.from('languages').update({ is_default: false }).eq('is_default', true);
-    await supabaseAdmin.from('languages').update({ is_default: true }).eq('code', code);
-    loadLanguages();
-    toast('Updated', 'Default language changed.');
+    try {
+      await supabaseAdmin.from('languages').update({ is_default: false }).eq('is_default', true);
+      await supabaseAdmin.from('languages').update({ is_default: true }).eq('code', code);
+      loadLanguages();
+      toast('Updated', 'Default language changed.');
+    } catch (err) {
+      toast('Error', err.message);
+    }
   }
 
   async function deleteLanguage(code) {
     if (!confirm('Delete language "'+code+'"?')) return;
-    const { error } = await supabaseAdmin.from('languages').delete().eq('code', code);
-    if (error) { toast('Error', error.message); return; }
-    loadLanguages();
-    toast('Deleted', 'Language removed.');
+    try {
+      const { error } = await supabaseAdmin.from('languages').delete().eq('code', code);
+      if (error) throw error;
+      loadLanguages();
+      toast('Deleted', 'Language removed.');
+    } catch (err) {
+      toast('Error', err.message);
+    }
   }
 
   // ============================================================
   //  STATIC TRANSLATIONS
   // ============================================================
   async function loadStaticKeys() {
-    const { data } = await supabaseAdmin.from('translations').select('key').eq('language_code', 'en');
-    allStaticKeys = data?.map(r => r.key) || [];
+    try {
+      const { data } = await supabaseAdmin.from('translations').select('key').eq('language_code', 'en');
+      allStaticKeys = data?.map(r => r.key) || [];
+    } catch (_) { allStaticKeys = []; }
   }
 
   async function loadTranslationsUI() {
     const sel = document.getElementById('trans-lang-select');
     if (!sel) return;
-    // Populate with languages
     sel.innerHTML = languages.map(l => `<option value="${l.code}">${l.name}</option>`).join('');
     sel.onchange = () => renderStaticTranslations(sel.value);
     if (languages.length) renderStaticTranslations(sel.value);
@@ -696,147 +717,158 @@
 
   async function renderStaticTranslations(lang) {
     if (!lang) return;
-    const { data: trans } = await supabaseAdmin.from('translations').select('key, translation').eq('language_code', lang);
-    const map = {};
-    (trans || []).forEach(r => map[r.key] = r.translation);
-    // Ensure we have keys from 'en' as reference
-    const { data: enKeys } = await supabaseAdmin.from('translations').select('key').eq('language_code', 'en');
-    const allKeys = enKeys?.map(r => r.key) || [];
-    const container = document.getElementById('static-translations-editor');
-    container.innerHTML = allKeys.map(key => `
-      <div style="display:flex;gap:10px;margin-bottom:6px;align-items:center;">
-        <span style="min-width:120px;font-weight:600;font-size:0.8rem;color:var(--text-dim);">${key}</span>
-        <input type="text" class="form-control" data-key="${key}" value="${map[key] || ''}" placeholder="Enter translation">
-      </div>
-    `).join('');
-    // Save button
-    const saveBtn = document.createElement('button');
-    saveBtn.className = 'btn btn-primary';
-    saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save All';
-    saveBtn.onclick = async () => {
-      const inputs = container.querySelectorAll('input[data-key]');
-      const updates = [];
-      inputs.forEach(inp => {
-        const key = inp.dataset.key;
-        const val = inp.value.trim();
-        if (val) updates.push({ language_code: lang, key, translation: val });
-      });
-      for (const up of updates) {
-        const { error } = await supabaseAdmin.from('translations').upsert(up, { onConflict: 'language_code,key' });
-        if (error) { toast('Error', error.message); return; }
+    try {
+      const { data: trans } = await supabaseAdmin.from('translations').select('key, translation').eq('language_code', lang);
+      const map = {};
+      (trans || []).forEach(r => map[r.key] = r.translation);
+      // Ensure we have keys from 'en' as reference
+      const { data: enKeys } = await supabaseAdmin.from('translations').select('key').eq('language_code', 'en');
+      const allKeys = enKeys?.map(r => r.key) || [];
+      const container = document.getElementById('static-translations-editor');
+      container.innerHTML = allKeys.map(key => `
+        <div style="display:flex;gap:10px;margin-bottom:6px;align-items:center;">
+          <span style="min-width:120px;font-weight:600;font-size:0.8rem;color:var(--text-dim);">${key}</span>
+          <input type="text" class="form-control" data-key="${key}" value="${map[key] || ''}" placeholder="Enter translation">
+        </div>
+      `).join('');
+      // Save button
+      let saveBtn = container.querySelector('.save-trans-btn');
+      if (!saveBtn) {
+        saveBtn = document.createElement('button');
+        saveBtn.className = 'btn btn-primary save-trans-btn';
+        saveBtn.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Save All';
+        saveBtn.onclick = async () => {
+          const inputs = container.querySelectorAll('input[data-key]');
+          const updates = [];
+          inputs.forEach(inp => {
+            const key = inp.dataset.key;
+            const val = inp.value.trim();
+            if (val) updates.push({ language_code: lang, key, translation: val });
+          });
+          for (const up of updates) {
+            const { error } = await supabaseAdmin.from('translations').upsert(up, { onConflict: 'language_code,key' });
+            if (error) { toast('Error', error.message); return; }
+          }
+          toast('Saved', 'Translations updated.');
+        };
+        container.appendChild(saveBtn);
       }
-      toast('Saved', 'Translations updated.');
-    };
-    container.appendChild(saveBtn);
+    } catch (err) {
+      toast('Error', 'Failed to render translations: ' + err.message);
+    }
   }
 
   async function autoTranslateStatic() {
     const lang = document.getElementById('trans-lang-select').value;
     if (!lang) { toast('Error', 'Select a language.'); return; }
-    // Get existing keys for target language
-    const { data: existing } = await supabaseAdmin.from('translations').select('key').eq('language_code', lang);
-    const existingSet = new Set(existing?.map(r => r.key) || []);
-    // Get English translations
-    const { data: enTrans } = await supabaseAdmin.from('translations').select('key, translation').eq('language_code', 'en');
-    const missing = enTrans?.filter(r => !existingSet.has(r.key)) || [];
-    if (missing.length === 0) { toast('Info', 'All keys already translated.'); return; }
-    // Call Edge Function
-    const items = missing.map(r => ({ table: 'translations', id: null, field: 'translation', text: r.translation }));
-    const { data: result, error } = await supabaseAdmin.functions.invoke('translate-content', {
-      body: { target_language: lang, source_language: 'en', items }
-    });
-    if (error) { toast('Error', error.message); return; }
-    toast('Success', 'Auto‑translation completed.');
-    renderStaticTranslations(lang);
+    try {
+      const { data: existing } = await supabaseAdmin.from('translations').select('key').eq('language_code', lang);
+      const existingSet = new Set(existing?.map(r => r.key) || []);
+      const { data: enTrans } = await supabaseAdmin.from('translations').select('key, translation').eq('language_code', 'en');
+      const missing = enTrans?.filter(r => !existingSet.has(r.key)) || [];
+      if (missing.length === 0) { toast('Info', 'All keys already translated.'); return; }
+      // Call Edge Function – we'll use the same translate-content function
+      const items = missing.map(r => ({ table: 'translations', id: null, field: 'translation', text: r.translation }));
+      const { data: result, error } = await supabaseAdmin.functions.invoke('translate-content', {
+        body: { target_language: lang, source_language: 'en', items }
+      });
+      if (error) throw error;
+      toast('Success', 'Auto‑translation completed.');
+      renderStaticTranslations(lang);
+    } catch (err) {
+      toast('Error', err.message);
+    }
   }
 
   // ============================================================
-  //  ANNOUNCEMENTS CRUD
+  //  ANNOUNCEMENTS CRUD (with per‑language translations)
   // ============================================================
   async function loadAnnouncementsAdmin() {
-    const { data } = await supabaseAdmin.from('announcements').select('*').order('date', { ascending: false });
-    const container = document.getElementById('announcements-admin-list');
-    if (!data || data.length === 0) {
-      container.innerHTML = '<div class="empty-state">No announcements yet.</div>';
-      return;
+    try {
+      const { data, error } = await supabaseAdmin.from('announcements').select('*').order('date', { ascending: false });
+      if (error) throw error;
+      const container = document.getElementById('announcements-admin-list');
+      if (!data || data.length === 0) {
+        container.innerHTML = '<div class="empty-state">No announcements yet.</div>';
+        return;
+      }
+      container.innerHTML = data.map(a => `
+        <div class="admin-card" style="padding:12px;margin-bottom:10px;" data-id="${a.id}">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+            <div>
+              <strong>${a.title}</strong> <span style="color:var(--text-dim);font-size:0.7rem;">${a.date}</span>
+              <p style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">${a.description}</p>
+              <span style="font-size:0.7rem;color:var(--text-dim);"><i class="fa-solid fa-location-dot"></i> ${a.location}</span>
+            </div>
+            <div style="display:flex;gap:6px;">
+              <button class="btn btn-danger btn-sm" onclick="deleteAnnouncement('${a.id}')"><i class="fa-solid fa-trash"></i></button>
+            </div>
+          </div>
+          <div style="margin-top:8px;">
+            <div class="lang-tabs" id="ann-lang-tabs-${a.id}"></div>
+            <div id="ann-trans-fields-${a.id}"></div>
+          </div>
+        </div>
+      `).join('');
+      // For each announcement, render translation editors
+      data.forEach(a => renderAnnouncementTranslations(a.id));
+    } catch (err) {
+      toast('Error', 'Failed to load announcements: ' + err.message);
     }
-    container.innerHTML = data.map(a => `
-      <div class="admin-card" style="padding:12px;margin-bottom:10px;">
-        <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-          <div>
-            <strong>${a.title}</strong> <span style="color:var(--text-dim);font-size:0.7rem;">${a.date}</span>
-            <p style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">${a.description}</p>
-            <span style="font-size:0.7rem;color:var(--text-dim);"><i class="fa-solid fa-location-dot"></i> ${a.location}</span>
-          </div>
-          <div style="display:flex;gap:6px;">
-            <button class="btn btn-secondary btn-sm" onclick="editAnnouncement('${a.id}')"><i class="fa-solid fa-pen"></i></button>
-            <button class="btn btn-danger btn-sm" onclick="deleteAnnouncement('${a.id}')"><i class="fa-solid fa-trash"></i></button>
-          </div>
-        </div>
-        <!-- Language tabs for translations -->
-        <div style="margin-top:8px;">
-          <div class="lang-tabs" id="ann-lang-tabs-${a.id}"></div>
-          <div id="ann-trans-fields-${a.id}"></div>
-        </div>
-      </div>
-    `).join('');
-    // For each announcement, load translation editors
-    data.forEach(a => {
-      renderAnnouncementTranslations(a.id);
-    });
   }
 
   function renderAnnouncementTranslations(id) {
     const container = document.getElementById('ann-trans-fields-'+id);
     const tabsContainer = document.getElementById('ann-lang-tabs-'+id);
     if (!container || !tabsContainer) return;
-    // Build language tabs
     let tabsHtml = '';
     languages.forEach(l => {
       tabsHtml += `<div class="lang-tab ${l.code === currentLang ? 'active' : ''}" data-lang="${l.code}" onclick="switchAnnouncementLang('${id}','${l.code}')">${l.flag || ''} ${l.name}</div>`;
     });
     tabsContainer.innerHTML = tabsHtml;
-    // Load fields for first language (currentLang)
     loadAnnouncementTranslationFields(id, currentLang);
   }
 
   async function loadAnnouncementTranslationFields(id, lang) {
-    // Fetch the announcement data
-    const { data: ann } = await supabaseAdmin.from('announcements').select('translations, title, description, location').eq('id', id).single();
-    if (!ann) return;
-    const trans = ann.translations || {};
-    const fields = ['title', 'description', 'location'];
-    const container = document.getElementById('ann-trans-fields-'+id);
-    container.innerHTML = fields.map(f => `
-      <div class="form-group" style="margin-bottom:6px;">
-        <label>${f.charAt(0).toUpperCase()+f.slice(1)} (${lang})</label>
-        <input type="text" class="form-control" data-field="${f}" data-lang="${lang}" value="${trans[lang]?.[f] || ''}" placeholder="Enter translation">
-      </div>
-    `).join('');
-    // Save button for this language
-    const saveBtn = document.createElement('button');
-    saveBtn.className = 'btn btn-secondary btn-sm';
-    saveBtn.textContent = 'Save translations for '+lang;
-    saveBtn.onclick = async () => {
-      const inputs = container.querySelectorAll('input[data-field]');
-      const updates = {};
-      inputs.forEach(inp => {
-        const field = inp.dataset.field;
-        const val = inp.value.trim();
-        if (val) updates[field] = val;
-      });
-      // Merge with existing translations
-      const currentTrans = ann.translations || {};
-      currentTrans[lang] = { ...currentTrans[lang], ...updates };
-      const { error } = await supabaseAdmin.from('announcements').update({ translations: currentTrans }).eq('id', id);
-      if (error) { toast('Error', error.message); return; }
-      toast('Saved', 'Translation updated.');
-    };
-    container.appendChild(saveBtn);
+    try {
+      const { data: ann } = await supabaseAdmin.from('announcements').select('translations, title, description, location').eq('id', id).single();
+      if (!ann) return;
+      const trans = ann.translations || {};
+      const fields = ['title', 'description', 'location'];
+      const container = document.getElementById('ann-trans-fields-'+id);
+      container.innerHTML = fields.map(f => `
+        <div class="form-group" style="margin-bottom:6px;">
+          <label>${f.charAt(0).toUpperCase()+f.slice(1)} (${lang})</label>
+          <input type="text" class="form-control" data-field="${f}" data-lang="${lang}" value="${trans[lang]?.[f] || ''}" placeholder="Enter translation">
+        </div>
+      `).join('');
+      let saveBtn = container.querySelector('.save-ann-trans');
+      if (!saveBtn) {
+        saveBtn = document.createElement('button');
+        saveBtn.className = 'btn btn-secondary btn-sm save-ann-trans';
+        saveBtn.textContent = 'Save translations for '+lang;
+        saveBtn.onclick = async () => {
+          const inputs = container.querySelectorAll('input[data-field]');
+          const updates = {};
+          inputs.forEach(inp => {
+            const field = inp.dataset.field;
+            const val = inp.value.trim();
+            if (val) updates[field] = val;
+          });
+          const currentTrans = ann.translations || {};
+          currentTrans[lang] = { ...currentTrans[lang], ...updates };
+          const { error } = await supabaseAdmin.from('announcements').update({ translations: currentTrans }).eq('id', id);
+          if (error) { toast('Error', error.message); return; }
+          toast('Saved', 'Translation updated.');
+        };
+        container.appendChild(saveBtn);
+      }
+    } catch (err) {
+      toast('Error', 'Failed to load translation fields: ' + err.message);
+    }
   }
 
   function switchAnnouncementLang(id, lang) {
-    // Update active tab
     const tabs = document.getElementById('ann-lang-tabs-'+id).querySelectorAll('.lang-tab');
     tabs.forEach(t => t.classList.toggle('active', t.dataset.lang === lang));
     loadAnnouncementTranslationFields(id, lang);
@@ -844,10 +876,14 @@
 
   async function deleteAnnouncement(id) {
     if (!confirm('Delete this announcement?')) return;
-    const { error } = await supabaseAdmin.from('announcements').delete().eq('id', id);
-    if (error) { toast('Error', error.message); return; }
-    loadAnnouncementsAdmin();
-    toast('Deleted', 'Announcement removed.');
+    try {
+      const { error } = await supabaseAdmin.from('announcements').delete().eq('id', id);
+      if (error) throw error;
+      loadAnnouncementsAdmin();
+      toast('Deleted', 'Announcement removed.');
+    } catch (err) {
+      toast('Error', err.message);
+    }
   }
 
   function showAddAnnouncement() {
@@ -858,35 +894,45 @@
     const loc = prompt('Location:') || 'Camp';
     const date = new Date().toISOString().split('T')[0];
     supabaseAdmin.from('announcements').insert({ title, description: desc, location: loc, date, translations: {} })
-      .then(() => { loadAnnouncementsAdmin(); toast('Added', 'Announcement created.'); });
+      .then(() => { loadAnnouncementsAdmin(); toast('Added', 'Announcement created.'); })
+      .catch(err => toast('Error', err.message));
   }
 
   // ============================================================
-  //  EVENTS CRUD (similar pattern, abbreviated for brevity)
+  //  EVENTS CRUD
   // ============================================================
   async function loadEventsAdmin() {
-    const { data } = await supabaseAdmin.from('events').select('*').order('timeVal', { ascending: true });
-    const container = document.getElementById('events-admin-list');
-    if (!data || data.length === 0) { container.innerHTML = '<div class="empty-state">No events.</div>'; return; }
-    container.innerHTML = data.map(e => `
-      <div class="admin-card" style="padding:12px;margin-bottom:10px;">
-        <div style="display:flex;justify-content:space-between;">
-          <div><strong>${e.title}</strong> <span style="color:var(--text-dim);font-size:0.7rem;">${e.category}</span><br>
-            <span style="font-size:0.8rem;color:var(--text-muted);">${e.date} · ${e.location}</span>
-          </div>
-          <div>
-            <button class="btn btn-danger btn-sm" onclick="deleteEvent('${e.id}')"><i class="fa-solid fa-trash"></i></button>
+    try {
+      const { data, error } = await supabaseAdmin.from('events').select('*').order('timeVal', { ascending: true });
+      if (error) throw error;
+      const container = document.getElementById('events-admin-list');
+      if (!data || data.length === 0) { container.innerHTML = '<div class="empty-state">No events.</div>'; return; }
+      container.innerHTML = data.map(e => `
+        <div class="admin-card" style="padding:12px;margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;">
+            <div><strong>${e.title}</strong> <span style="color:var(--text-dim);font-size:0.7rem;">${e.category}</span><br>
+              <span style="font-size:0.8rem;color:var(--text-muted);">${e.date} · ${e.location}</span>
+            </div>
+            <div>
+              <button class="btn btn-danger btn-sm" onclick="deleteEvent('${e.id}')"><i class="fa-solid fa-trash"></i></button>
+            </div>
           </div>
         </div>
-      </div>
-    `).join('');
+      `).join('');
+    } catch (err) {
+      toast('Error', 'Failed to load events: ' + err.message);
+    }
   }
 
   async function deleteEvent(id) {
     if (!confirm('Delete event?')) return;
-    await supabaseAdmin.from('events').delete().eq('id', id);
-    loadEventsAdmin();
-    toast('Deleted', 'Event removed.');
+    try {
+      await supabaseAdmin.from('events').delete().eq('id', id);
+      loadEventsAdmin();
+      toast('Deleted', 'Event removed.');
+    } catch (err) {
+      toast('Error', err.message);
+    }
   }
 
   function showAddEvent() {
@@ -899,35 +945,45 @@
     if (!location) return;
     const timeVal = Date.now() + 86400000; // placeholder
     supabaseAdmin.from('events').insert({ title, category, date, location, timeVal, icon: 'fa-calendar-days', live: false, translations: {} })
-      .then(() => { loadEventsAdmin(); toast('Added', 'Event created.'); });
+      .then(() => { loadEventsAdmin(); toast('Added', 'Event created.'); })
+      .catch(err => toast('Error', err.message));
   }
 
   // ============================================================
   //  FACILITIES CRUD
   // ============================================================
   async function loadFacilitiesAdmin() {
-    const { data } = await supabaseAdmin.from('facilities').select('*');
-    const container = document.getElementById('facilities-admin-list');
-    if (!data || data.length === 0) { container.innerHTML = '<div class="empty-state">No facilities.</div>'; return; }
-    container.innerHTML = data.map(f => `
-      <div class="admin-card" style="padding:12px;margin-bottom:10px;">
-        <div style="display:flex;justify-content:space-between;">
-          <div><strong><i class="fa-solid ${f.icon}"></i> ${f.name}</strong><br>
-            <span style="font-size:0.8rem;color:var(--text-muted);">${f.info}</span>
-          </div>
-          <div>
-            <button class="btn btn-danger btn-sm" onclick="deleteFacility('${f.id}')"><i class="fa-solid fa-trash"></i></button>
+    try {
+      const { data, error } = await supabaseAdmin.from('facilities').select('*');
+      if (error) throw error;
+      const container = document.getElementById('facilities-admin-list');
+      if (!data || data.length === 0) { container.innerHTML = '<div class="empty-state">No facilities.</div>'; return; }
+      container.innerHTML = data.map(f => `
+        <div class="admin-card" style="padding:12px;margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;">
+            <div><strong><i class="fa-solid ${f.icon}"></i> ${f.name}</strong><br>
+              <span style="font-size:0.8rem;color:var(--text-muted);">${f.info}</span>
+            </div>
+            <div>
+              <button class="btn btn-danger btn-sm" onclick="deleteFacility('${f.id}')"><i class="fa-solid fa-trash"></i></button>
+            </div>
           </div>
         </div>
-      </div>
-    `).join('');
+      `).join('');
+    } catch (err) {
+      toast('Error', 'Failed to load facilities: ' + err.message);
+    }
   }
 
   async function deleteFacility(id) {
     if (!confirm('Delete facility?')) return;
-    await supabaseAdmin.from('facilities').delete().eq('id', id);
-    loadFacilitiesAdmin();
-    toast('Deleted', 'Facility removed.');
+    try {
+      await supabaseAdmin.from('facilities').delete().eq('id', id);
+      loadFacilitiesAdmin();
+      toast('Deleted', 'Facility removed.');
+    } catch (err) {
+      toast('Error', err.message);
+    }
   }
 
   function showAddFacility() {
@@ -940,18 +996,22 @@
     const icon = 'fa-utensils';
     const color = '#ff7a1a';
     supabaseAdmin.from('facilities').insert({ name, info, lat, lng, icon, color, translations: {} })
-      .then(() => { loadFacilitiesAdmin(); toast('Added', 'Facility created.'); });
+      .then(() => { loadFacilitiesAdmin(); toast('Added', 'Facility created.'); })
+      .catch(err => toast('Error', err.message));
   }
 
   // ============================================================
   //  PRAYER TIMES
   // ============================================================
-  let prayerTimes = [];
-
   async function loadPrayerAdmin() {
-    const { data } = await supabaseAdmin.from('prayer_times').select('*').order('id');
-    prayerTimes = data || [];
-    renderPrayerAdmin();
+    try {
+      const { data, error } = await supabaseAdmin.from('prayer_times').select('*').order('id');
+      if (error) throw error;
+      prayerTimes = data || [];
+      renderPrayerAdmin();
+    } catch (err) {
+      toast('Error', 'Failed to load prayer times: ' + err.message);
+    }
   }
 
   function renderPrayerAdmin() {
@@ -974,24 +1034,27 @@
   }
 
   async function savePrayerTimes() {
-    const updates = [];
-    prayerTimes.forEach((p, idx) => {
-      const time = document.getElementById('prayer-time-'+idx).value.trim();
-      const offset = parseInt(document.getElementById('prayer-offset-'+idx).value);
-      if (time && !isNaN(offset)) {
-        updates.push({ id: p.id, adhan_time: time, iqama_offset: offset });
+    try {
+      const updates = [];
+      prayerTimes.forEach((p, idx) => {
+        const time = document.getElementById('prayer-time-'+idx).value.trim();
+        const offset = parseInt(document.getElementById('prayer-offset-'+idx).value);
+        if (time && !isNaN(offset)) {
+          updates.push({ id: p.id, adhan_time: time, iqama_offset: offset });
+        }
+      });
+      for (const u of updates) {
+        const { error } = await supabaseAdmin.from('prayer_times').update({ adhan_time: u.adhan_time, iqama_offset: u.iqama_offset }).eq('id', u.id);
+        if (error) throw error;
       }
-    });
-    for (const u of updates) {
-      const { error } = await supabaseAdmin.from('prayer_times').update({ adhan_time: u.adhan_time, iqama_offset: u.iqama_offset }).eq('id', u.id);
-      if (error) { toast('Error', error.message); return; }
+      toast('Saved', 'Prayer times updated.');
+    } catch (err) {
+      toast('Error', err.message);
     }
-    toast('Saved', 'Prayer times updated.');
   }
 
   async function fetchPrayerTimesWorker() {
     toast('Fetching', 'Contacting MARA Worker...');
-    // Reuse the worker fetch logic from resident app
     const WORKER_URL = "https://prayer-time.3ma-creative.workers.dev/";
     const now = new Date();
     const year = now.getFullYear();
@@ -1052,22 +1115,27 @@
   // ============================================================
   //  MENU
   // ============================================================
+  let menuData = {};
+
   async function loadMenuAdmin() {
-    // Load existing menu for all days
-    const { data } = await supabaseAdmin.from('menu').select('*');
-    window._menuData = {};
-    (data || []).forEach(row => {
-      if (!window._menuData[row.day]) window._menuData[row.day] = {};
-      window._menuData[row.day][row.meal] = row.items;
-    });
-    // Ensure all days exist
-    DAYS.forEach(day => {
-      if (!window._menuData[day]) window._menuData[day] = {};
-      MEALS.forEach(meal => {
-        if (!window._menuData[day][meal]) window._menuData[day][meal] = [];
+    try {
+      const { data, error } = await supabaseAdmin.from('menu').select('*');
+      if (error) throw error;
+      menuData = {};
+      (data || []).forEach(row => {
+        if (!menuData[row.day]) menuData[row.day] = {};
+        menuData[row.day][row.meal] = row.items;
       });
-    });
-    renderAdminDayTabs();
+      DAYS.forEach(day => {
+        if (!menuData[day]) menuData[day] = {};
+        MEALS.forEach(meal => {
+          if (!menuData[day][meal]) menuData[day][meal] = [];
+        });
+      });
+      renderAdminDayTabs();
+    } catch (err) {
+      toast('Error', 'Failed to load menu: ' + err.message);
+    }
   }
 
   function renderAdminDayTabs() {
@@ -1085,7 +1153,7 @@
 
   function renderAdminMenuFields(day) {
     const container = document.getElementById('admin-menu-fields');
-    const dayMenu = window._menuData[day] || {};
+    const dayMenu = menuData[day] || {};
     container.innerHTML = MEALS.map(meal => `
       <div class="form-group">
         <label>${meal} (comma separated items)</label>
@@ -1095,50 +1163,61 @@
   }
 
   async function saveMenuDay() {
-    const day = adminActiveDay;
-    const updates = {};
-    MEALS.forEach(meal => {
-      const val = document.getElementById(`menu-${day}-${meal}`).value;
-      updates[meal] = val.split(',').map(s => s.trim()).filter(Boolean);
-    });
-    // Upsert each meal
-    for (const meal of MEALS) {
-      const { error } = await supabaseAdmin.from('menu').upsert({
-        day: day,
-        meal: meal,
-        items: updates[meal]
-      }, { onConflict: 'day, meal' });
-      if (error) { toast('Error', error.message); return; }
+    try {
+      const day = adminActiveDay;
+      const updates = {};
+      MEALS.forEach(meal => {
+        const val = document.getElementById(`menu-${day}-${meal}`).value;
+        updates[meal] = val.split(',').map(s => s.trim()).filter(Boolean);
+      });
+      for (const meal of MEALS) {
+        const { error } = await supabaseAdmin.from('menu').upsert({
+          day: day,
+          meal: meal,
+          items: updates[meal]
+        }, { onConflict: 'day, meal' });
+        if (error) throw error;
+      }
+      menuData[day] = updates;
+      toast('Saved', 'Menu for '+day+' updated.');
+    } catch (err) {
+      toast('Error', err.message);
     }
-    // Update local cache
-    window._menuData[day] = updates;
-    toast('Saved', 'Menu for '+day+' updated.');
   }
 
   // ============================================================
   //  TRANSPORT
   // ============================================================
   async function loadTransportAdmin() {
-    const { data } = await supabaseAdmin.from('transport').select('*');
-    const container = document.getElementById('transport-admin-list');
-    if (!data || data.length === 0) { container.innerHTML = '<div class="empty-state">No shuttles.</div>'; return; }
-    container.innerHTML = data.map(t => `
-      <div class="admin-card" style="padding:12px;margin-bottom:8px;">
-        <div style="display:flex;justify-content:space-between;">
-          <div><strong>${t.name}</strong><br><span style="font-size:0.8rem;color:var(--text-muted);">${t.route} · ${t.time}</span></div>
-          <div>
-            <button class="btn btn-danger btn-sm" onclick="deleteTransport('${t.id}')"><i class="fa-solid fa-trash"></i></button>
+    try {
+      const { data, error } = await supabaseAdmin.from('transport').select('*');
+      if (error) throw error;
+      const container = document.getElementById('transport-admin-list');
+      if (!data || data.length === 0) { container.innerHTML = '<div class="empty-state">No shuttles.</div>'; return; }
+      container.innerHTML = data.map(t => `
+        <div class="admin-card" style="padding:12px;margin-bottom:8px;">
+          <div style="display:flex;justify-content:space-between;">
+            <div><strong>${t.name}</strong><br><span style="font-size:0.8rem;color:var(--text-muted);">${t.route} · ${t.time}</span></div>
+            <div>
+              <button class="btn btn-danger btn-sm" onclick="deleteTransport('${t.id}')"><i class="fa-solid fa-trash"></i></button>
+            </div>
           </div>
         </div>
-      </div>
-    `).join('');
+      `).join('');
+    } catch (err) {
+      toast('Error', 'Failed to load transport: ' + err.message);
+    }
   }
 
   async function deleteTransport(id) {
     if (!confirm('Delete shuttle?')) return;
-    await supabaseAdmin.from('transport').delete().eq('id', id);
-    loadTransportAdmin();
-    toast('Deleted', 'Shuttle removed.');
+    try {
+      await supabaseAdmin.from('transport').delete().eq('id', id);
+      loadTransportAdmin();
+      toast('Deleted', 'Shuttle removed.');
+    } catch (err) {
+      toast('Error', err.message);
+    }
   }
 
   function showAddTransport() {
@@ -1149,35 +1228,45 @@
     const time = prompt('Time/status:');
     if (!time) return;
     supabaseAdmin.from('transport').insert({ name, route, time, status: 'scheduled', translations: {} })
-      .then(() => { loadTransportAdmin(); toast('Added', 'Shuttle created.'); });
+      .then(() => { loadTransportAdmin(); toast('Added', 'Shuttle created.'); })
+      .catch(err => toast('Error', err.message));
   }
 
   // ============================================================
   //  CONTACTS
   // ============================================================
   async function loadContactsAdmin() {
-    const { data } = await supabaseAdmin.from('contacts').select('*');
-    const container = document.getElementById('contacts-admin-list');
-    if (!data || data.length === 0) { container.innerHTML = '<div class="empty-state">No contacts.</div>'; return; }
-    container.innerHTML = data.map(c => `
-      <div class="admin-card" style="padding:12px;margin-bottom:8px;">
-        <div style="display:flex;justify-content:space-between;">
-          <div><strong>${c.title}</strong> <span style="color:var(--text-dim);font-size:0.7rem;">${c.category}</span><br>
-            <span style="font-size:0.8rem;color:var(--text-muted);">${c.subtitle} · ${c.phone}</span>
-          </div>
-          <div>
-            <button class="btn btn-danger btn-sm" onclick="deleteContact('${c.id}')"><i class="fa-solid fa-trash"></i></button>
+    try {
+      const { data, error } = await supabaseAdmin.from('contacts').select('*');
+      if (error) throw error;
+      const container = document.getElementById('contacts-admin-list');
+      if (!data || data.length === 0) { container.innerHTML = '<div class="empty-state">No contacts.</div>'; return; }
+      container.innerHTML = data.map(c => `
+        <div class="admin-card" style="padding:12px;margin-bottom:8px;">
+          <div style="display:flex;justify-content:space-between;">
+            <div><strong>${c.title}</strong> <span style="color:var(--text-dim);font-size:0.7rem;">${c.category}</span><br>
+              <span style="font-size:0.8rem;color:var(--text-muted);">${c.subtitle} · ${c.phone}</span>
+            </div>
+            <div>
+              <button class="btn btn-danger btn-sm" onclick="deleteContact('${c.id}')"><i class="fa-solid fa-trash"></i></button>
+            </div>
           </div>
         </div>
-      </div>
-    `).join('');
+      `).join('');
+    } catch (err) {
+      toast('Error', 'Failed to load contacts: ' + err.message);
+    }
   }
 
   async function deleteContact(id) {
     if (!confirm('Delete contact?')) return;
-    await supabaseAdmin.from('contacts').delete().eq('id', id);
-    loadContactsAdmin();
-    toast('Deleted', 'Contact removed.');
+    try {
+      await supabaseAdmin.from('contacts').delete().eq('id', id);
+      loadContactsAdmin();
+      toast('Deleted', 'Contact removed.');
+    } catch (err) {
+      toast('Error', err.message);
+    }
   }
 
   function showAddContact() {
@@ -1188,65 +1277,65 @@
     const subtitle = prompt('Subtitle:') || '';
     const category = prompt('Category (emergency/ops/services):') || 'services';
     supabaseAdmin.from('contacts').insert({ title, phone, subtitle, category, translations: {} })
-      .then(() => { loadContactsAdmin(); toast('Added', 'Contact created.'); });
+      .then(() => { loadContactsAdmin(); toast('Added', 'Contact created.'); })
+      .catch(err => toast('Error', err.message));
   }
 
   // ============================================================
   //  SETTINGS
   // ============================================================
   async function loadSettings() {
-    const { data } = await supabaseAdmin.from('camp_settings').select('*').limit(1);
-    const s = data?.[0] || {};
-    document.getElementById('admin-camp-name').value = s.camp_name || '';
-    document.getElementById('admin-camp-region').value = s.region || '';
-    document.getElementById('admin-camp-desc').value = s.description || '';
-    document.getElementById('admin-production').value = s.production || '';
-    document.getElementById('admin-personnel').value = s.personnel || '';
-    document.getElementById('admin-companies-count').value = s.companies_count || '';
-    document.getElementById('admin-established').value = s.established || '';
-    document.getElementById('admin-history').value = (s.history || []).map(h => h.title + ' | ' + h.desc).join('\n');
-    document.getElementById('admin-companies').value = (s.companies || []).join('\n');
+    try {
+      const { data, error } = await supabaseAdmin.from('camp_settings').select('*').limit(1);
+      if (error) throw error;
+      const s = data?.[0] || {};
+      document.getElementById('admin-camp-name').value = s.camp_name || '';
+      document.getElementById('admin-camp-region').value = s.region || '';
+      document.getElementById('admin-camp-desc').value = s.description || '';
+      document.getElementById('admin-production').value = s.production || '';
+      document.getElementById('admin-personnel').value = s.personnel || '';
+      document.getElementById('admin-companies-count').value = s.companies_count || '';
+      document.getElementById('admin-established').value = s.established || '';
+      document.getElementById('admin-history').value = (s.history || []).map(h => h.title + ' | ' + h.desc).join('\n');
+      document.getElementById('admin-companies').value = (s.companies || []).join('\n');
+    } catch (err) {
+      toast('Error', 'Failed to load settings: ' + err.message);
+    }
   }
 
   async function saveSettings() {
-    const obj = {
-      camp_name: document.getElementById('admin-camp-name').value,
-      region: document.getElementById('admin-camp-region').value,
-      description: document.getElementById('admin-camp-desc').value,
-      production: document.getElementById('admin-production').value,
-      personnel: document.getElementById('admin-personnel').value,
-      companies_count: document.getElementById('admin-companies-count').value,
-      established: document.getElementById('admin-established').value,
-    };
-    // Parse history
-    const historyText = document.getElementById('admin-history').value;
-    obj.history = historyText.split('\n').filter(Boolean).map(line => {
-      const [title, ...rest] = line.split('|');
-      return { title: title.trim(), desc: rest.join('|').trim() };
-    });
-    obj.companies = document.getElementById('admin-companies').value.split('\n').filter(Boolean).map(s => s.trim());
-    // Upsert
-    const { data } = await supabaseAdmin.from('camp_settings').select('id').limit(1);
-    if (data && data.length) {
-      await supabaseAdmin.from('camp_settings').update(obj).eq('id', data[0].id);
-    } else {
-      await supabaseAdmin.from('camp_settings').insert(obj);
+    try {
+      const obj = {
+        camp_name: document.getElementById('admin-camp-name').value,
+        region: document.getElementById('admin-camp-region').value,
+        description: document.getElementById('admin-camp-desc').value,
+        production: document.getElementById('admin-production').value,
+        personnel: document.getElementById('admin-personnel').value,
+        companies_count: document.getElementById('admin-companies-count').value,
+        established: document.getElementById('admin-established').value,
+      };
+      const historyText = document.getElementById('admin-history').value;
+      obj.history = historyText.split('\n').filter(Boolean).map(line => {
+        const [title, ...rest] = line.split('|');
+        return { title: title.trim(), desc: rest.join('|').trim() };
+      });
+      obj.companies = document.getElementById('admin-companies').value.split('\n').filter(Boolean).map(s => s.trim());
+      const { data } = await supabaseAdmin.from('camp_settings').select('id').limit(1);
+      if (data && data.length) {
+        await supabaseAdmin.from('camp_settings').update(obj).eq('id', data[0].id);
+      } else {
+        await supabaseAdmin.from('camp_settings').insert(obj);
+      }
+      toast('Saved', 'Settings updated.');
+    } catch (err) {
+      toast('Error', err.message);
     }
-    toast('Saved', 'Settings updated.');
   }
 
   // ============================================================
   //  INIT
   // ============================================================
-  document.addEventListener('DOMContentLoaded', () => {
-    checkSession();
-    // Close login modal if user clicks outside
-    document.getElementById('login-modal').addEventListener('click', (e) => {
-      if (e.target === e.currentTarget) {
-        // Do not close, stay
-      }
-    });
-  });
+  document.addEventListener('DOMContentLoaded', checkSession);
 
   // Expose functions globally
   window.addLanguage = addLanguage;
@@ -1271,7 +1360,7 @@
   window.switchAnnouncementLang = switchAnnouncementLang;
   window.login = login;
   window.logout = logout;
-  window.renderStaticTranslations = renderStaticTranslations; // needed for reload
+  window.renderStaticTranslations = renderStaticTranslations;
 </script>
 </body>
 </html>
