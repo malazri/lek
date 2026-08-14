@@ -1,4 +1,4 @@
-5<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="UTF-8">
@@ -455,9 +455,34 @@
   // ============================================================
   //  SUPABASE CONFIGURATION
   // ============================================================
-  const SUPABASE_URL = 'https://mywcoynuakmfafzgzlzr.supabase.co';
+  const SUPABASE_URL = 'https://mywcoynuakmfafzgzlzr.supabaseAdmin.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15d2NveW51YWttZmFmemd6bHpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY1NDc3MjUsImV4cCI6MjEwMjEyMzcyNX0.xLWIUEVq2y_90f__QYPaJyPN7KGMqvBT1RfuwC660Ng';
-  const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  
+  
+    // --- SAFETY CHECK ---
+    let supabaseAdmin;
+    try {
+      // Try both possible globals
+      const lib = window.supabase || window.Supabase;
+      if (!lib || typeof lib.createClient !== 'function') {
+        throw new Error('Supabase library not loaded correctly');
+      }
+      supabaseAdmin = lib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    } catch (err) {
+      document.body.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0a0d13;color:#f5f3ec;font-family:Inter,sans-serif;text-align:center;padding:20px;">
+          <div>
+            <h1 style="font-size:1.8rem;margin-bottom:16px;">⚠️ Connection Error</h1>
+            <p style="font-size:1rem;color:#8d93a6;max-width:400px;margin:0 auto;">
+              The Supabase client could not be initialised. Please check your internet connection and reload.
+            </p>
+            <button onclick="location.reload()" style="margin-top:20px;padding:12px 28px;background:#ff7a1a;border:none;border-radius:12px;color:#1a0d02;font-weight:700;font-size:1rem;cursor:pointer;">Reload Page</button>
+          </div>
+        </div>
+      `;
+      // Stop execution
+      throw err;
+    }
 
   // ============================================================
   //  GLOBAL STATE
@@ -495,7 +520,7 @@
     const status = document.getElementById('login-status');
     status.textContent = 'Signing in...';
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabaseAdmin.auth.signInWithPassword({ email, password });
       if (error) throw error;
       currentUser = data.user;
       isAdmin = true;
@@ -510,7 +535,7 @@
   }
 
   async function logout() {
-    await supabase.auth.signOut();
+    await supabaseAdmin.auth.signOut();
     currentUser = null;
     isAdmin = false;
     document.getElementById('admin-layout').style.display = 'none';
@@ -520,7 +545,7 @@
   }
 
   async function checkSession() {
-    const { data: { session } } = await supabase.auth.getSession();
+    const { data: { session } } = await supabaseAdmin.auth.getSession();
     if (session) {
       currentUser = session.user;
       isAdmin = true;
@@ -582,10 +607,10 @@
   //  DASHBOARD STATS
   // ============================================================
   async function updateDashboardStats() {
-    const { count: langCount } = await supabase.from('languages').select('*', { count: 'exact', head: true });
-    const { count: annCount } = await supabase.from('announcements').select('*', { count: 'exact', head: true });
-    const { count: evCount } = await supabase.from('events').select('*', { count: 'exact', head: true });
-    const { count: facCount } = await supabase.from('facilities').select('*', { count: 'exact', head: true });
+    const { count: langCount } = await supabaseAdmin.from('languages').select('*', { count: 'exact', head: true });
+    const { count: annCount } = await supabaseAdmin.from('announcements').select('*', { count: 'exact', head: true });
+    const { count: evCount } = await supabaseAdmin.from('events').select('*', { count: 'exact', head: true });
+    const { count: facCount } = await supabaseAdmin.from('facilities').select('*', { count: 'exact', head: true });
     document.getElementById('stats-languages').textContent = langCount || 0;
     document.getElementById('stats-announcements').textContent = annCount || 0;
     document.getElementById('stats-events').textContent = evCount || 0;
@@ -596,7 +621,7 @@
   //  LANGUAGES CRUD
   // ============================================================
   async function loadLanguages() {
-    const { data } = await supabase.from('languages').select('*').order('code');
+    const { data } = await supabaseAdmin.from('languages').select('*').order('code');
     languages = data || [];
     const container = document.getElementById('languages-list');
     container.innerHTML = languages.map(l => `
@@ -628,7 +653,7 @@
     const name = document.getElementById('new-lang-name').value.trim();
     const flag = document.getElementById('new-lang-flag').value.trim();
     if (!code || !name) { toast('Error', 'Code and name required.'); return; }
-    const { error } = await supabase.from('languages').insert({ code, name, flag });
+    const { error } = await supabaseAdmin.from('languages').insert({ code, name, flag });
     if (error) { toast('Error', error.message); return; }
     document.getElementById('new-lang-code').value = '';
     document.getElementById('new-lang-name').value = '';
@@ -638,15 +663,15 @@
   }
 
   async function setDefaultLanguage(code) {
-    await supabase.from('languages').update({ is_default: false }).eq('is_default', true);
-    await supabase.from('languages').update({ is_default: true }).eq('code', code);
+    await supabaseAdmin.from('languages').update({ is_default: false }).eq('is_default', true);
+    await supabaseAdmin.from('languages').update({ is_default: true }).eq('code', code);
     loadLanguages();
     toast('Updated', 'Default language changed.');
   }
 
   async function deleteLanguage(code) {
     if (!confirm('Delete language "'+code+'"?')) return;
-    const { error } = await supabase.from('languages').delete().eq('code', code);
+    const { error } = await supabaseAdmin.from('languages').delete().eq('code', code);
     if (error) { toast('Error', error.message); return; }
     loadLanguages();
     toast('Deleted', 'Language removed.');
@@ -656,7 +681,7 @@
   //  STATIC TRANSLATIONS
   // ============================================================
   async function loadStaticKeys() {
-    const { data } = await supabase.from('translations').select('key').eq('language_code', 'en');
+    const { data } = await supabaseAdmin.from('translations').select('key').eq('language_code', 'en');
     allStaticKeys = data?.map(r => r.key) || [];
   }
 
@@ -671,11 +696,11 @@
 
   async function renderStaticTranslations(lang) {
     if (!lang) return;
-    const { data: trans } = await supabase.from('translations').select('key, translation').eq('language_code', lang);
+    const { data: trans } = await supabaseAdmin.from('translations').select('key, translation').eq('language_code', lang);
     const map = {};
     (trans || []).forEach(r => map[r.key] = r.translation);
     // Ensure we have keys from 'en' as reference
-    const { data: enKeys } = await supabase.from('translations').select('key').eq('language_code', 'en');
+    const { data: enKeys } = await supabaseAdmin.from('translations').select('key').eq('language_code', 'en');
     const allKeys = enKeys?.map(r => r.key) || [];
     const container = document.getElementById('static-translations-editor');
     container.innerHTML = allKeys.map(key => `
@@ -697,7 +722,7 @@
         if (val) updates.push({ language_code: lang, key, translation: val });
       });
       for (const up of updates) {
-        const { error } = await supabase.from('translations').upsert(up, { onConflict: 'language_code,key' });
+        const { error } = await supabaseAdmin.from('translations').upsert(up, { onConflict: 'language_code,key' });
         if (error) { toast('Error', error.message); return; }
       }
       toast('Saved', 'Translations updated.');
@@ -709,15 +734,15 @@
     const lang = document.getElementById('trans-lang-select').value;
     if (!lang) { toast('Error', 'Select a language.'); return; }
     // Get existing keys for target language
-    const { data: existing } = await supabase.from('translations').select('key').eq('language_code', lang);
+    const { data: existing } = await supabaseAdmin.from('translations').select('key').eq('language_code', lang);
     const existingSet = new Set(existing?.map(r => r.key) || []);
     // Get English translations
-    const { data: enTrans } = await supabase.from('translations').select('key, translation').eq('language_code', 'en');
+    const { data: enTrans } = await supabaseAdmin.from('translations').select('key, translation').eq('language_code', 'en');
     const missing = enTrans?.filter(r => !existingSet.has(r.key)) || [];
     if (missing.length === 0) { toast('Info', 'All keys already translated.'); return; }
     // Call Edge Function
     const items = missing.map(r => ({ table: 'translations', id: null, field: 'translation', text: r.translation }));
-    const { data: result, error } = await supabase.functions.invoke('translate-content', {
+    const { data: result, error } = await supabaseAdmin.functions.invoke('translate-content', {
       body: { target_language: lang, source_language: 'en', items }
     });
     if (error) { toast('Error', error.message); return; }
@@ -729,7 +754,7 @@
   //  ANNOUNCEMENTS CRUD
   // ============================================================
   async function loadAnnouncementsAdmin() {
-    const { data } = await supabase.from('announcements').select('*').order('date', { ascending: false });
+    const { data } = await supabaseAdmin.from('announcements').select('*').order('date', { ascending: false });
     const container = document.getElementById('announcements-admin-list');
     if (!data || data.length === 0) {
       container.innerHTML = '<div class="empty-state">No announcements yet.</div>';
@@ -777,7 +802,7 @@
 
   async function loadAnnouncementTranslationFields(id, lang) {
     // Fetch the announcement data
-    const { data: ann } = await supabase.from('announcements').select('translations, title, description, location').eq('id', id).single();
+    const { data: ann } = await supabaseAdmin.from('announcements').select('translations, title, description, location').eq('id', id).single();
     if (!ann) return;
     const trans = ann.translations || {};
     const fields = ['title', 'description', 'location'];
@@ -803,7 +828,7 @@
       // Merge with existing translations
       const currentTrans = ann.translations || {};
       currentTrans[lang] = { ...currentTrans[lang], ...updates };
-      const { error } = await supabase.from('announcements').update({ translations: currentTrans }).eq('id', id);
+      const { error } = await supabaseAdmin.from('announcements').update({ translations: currentTrans }).eq('id', id);
       if (error) { toast('Error', error.message); return; }
       toast('Saved', 'Translation updated.');
     };
@@ -819,7 +844,7 @@
 
   async function deleteAnnouncement(id) {
     if (!confirm('Delete this announcement?')) return;
-    const { error } = await supabase.from('announcements').delete().eq('id', id);
+    const { error } = await supabaseAdmin.from('announcements').delete().eq('id', id);
     if (error) { toast('Error', error.message); return; }
     loadAnnouncementsAdmin();
     toast('Deleted', 'Announcement removed.');
@@ -832,7 +857,7 @@
     if (desc === null) return;
     const loc = prompt('Location:') || 'Camp';
     const date = new Date().toISOString().split('T')[0];
-    supabase.from('announcements').insert({ title, description: desc, location: loc, date, translations: {} })
+    supabaseAdmin.from('announcements').insert({ title, description: desc, location: loc, date, translations: {} })
       .then(() => { loadAnnouncementsAdmin(); toast('Added', 'Announcement created.'); });
   }
 
@@ -840,7 +865,7 @@
   //  EVENTS CRUD (similar pattern, abbreviated for brevity)
   // ============================================================
   async function loadEventsAdmin() {
-    const { data } = await supabase.from('events').select('*').order('timeVal', { ascending: true });
+    const { data } = await supabaseAdmin.from('events').select('*').order('timeVal', { ascending: true });
     const container = document.getElementById('events-admin-list');
     if (!data || data.length === 0) { container.innerHTML = '<div class="empty-state">No events.</div>'; return; }
     container.innerHTML = data.map(e => `
@@ -859,7 +884,7 @@
 
   async function deleteEvent(id) {
     if (!confirm('Delete event?')) return;
-    await supabase.from('events').delete().eq('id', id);
+    await supabaseAdmin.from('events').delete().eq('id', id);
     loadEventsAdmin();
     toast('Deleted', 'Event removed.');
   }
@@ -873,7 +898,7 @@
     const location = prompt('Location:');
     if (!location) return;
     const timeVal = Date.now() + 86400000; // placeholder
-    supabase.from('events').insert({ title, category, date, location, timeVal, icon: 'fa-calendar-days', live: false, translations: {} })
+    supabaseAdmin.from('events').insert({ title, category, date, location, timeVal, icon: 'fa-calendar-days', live: false, translations: {} })
       .then(() => { loadEventsAdmin(); toast('Added', 'Event created.'); });
   }
 
@@ -881,7 +906,7 @@
   //  FACILITIES CRUD
   // ============================================================
   async function loadFacilitiesAdmin() {
-    const { data } = await supabase.from('facilities').select('*');
+    const { data } = await supabaseAdmin.from('facilities').select('*');
     const container = document.getElementById('facilities-admin-list');
     if (!data || data.length === 0) { container.innerHTML = '<div class="empty-state">No facilities.</div>'; return; }
     container.innerHTML = data.map(f => `
@@ -900,7 +925,7 @@
 
   async function deleteFacility(id) {
     if (!confirm('Delete facility?')) return;
-    await supabase.from('facilities').delete().eq('id', id);
+    await supabaseAdmin.from('facilities').delete().eq('id', id);
     loadFacilitiesAdmin();
     toast('Deleted', 'Facility removed.');
   }
@@ -914,7 +939,7 @@
     const lng = parseFloat(prompt('Longitude:') || '55.3700');
     const icon = 'fa-utensils';
     const color = '#ff7a1a';
-    supabase.from('facilities').insert({ name, info, lat, lng, icon, color, translations: {} })
+    supabaseAdmin.from('facilities').insert({ name, info, lat, lng, icon, color, translations: {} })
       .then(() => { loadFacilitiesAdmin(); toast('Added', 'Facility created.'); });
   }
 
@@ -924,7 +949,7 @@
   let prayerTimes = [];
 
   async function loadPrayerAdmin() {
-    const { data } = await supabase.from('prayer_times').select('*').order('id');
+    const { data } = await supabaseAdmin.from('prayer_times').select('*').order('id');
     prayerTimes = data || [];
     renderPrayerAdmin();
   }
@@ -958,7 +983,7 @@
       }
     });
     for (const u of updates) {
-      const { error } = await supabase.from('prayer_times').update({ adhan_time: u.adhan_time, iqama_offset: u.iqama_offset }).eq('id', u.id);
+      const { error } = await supabaseAdmin.from('prayer_times').update({ adhan_time: u.adhan_time, iqama_offset: u.iqama_offset }).eq('id', u.id);
       if (error) { toast('Error', error.message); return; }
     }
     toast('Saved', 'Prayer times updated.');
@@ -1015,7 +1040,7 @@
       if (!found) throw new Error('Could not find today\'s row');
       // Update database
       for (const p of prayerTimes) {
-        await supabase.from('prayer_times').update({ adhan_time: p.adhan_time }).eq('id', p.id);
+        await supabaseAdmin.from('prayer_times').update({ adhan_time: p.adhan_time }).eq('id', p.id);
       }
       renderPrayerAdmin();
       toast('Success', 'Prayer times updated from worker.');
@@ -1029,7 +1054,7 @@
   // ============================================================
   async function loadMenuAdmin() {
     // Load existing menu for all days
-    const { data } = await supabase.from('menu').select('*');
+    const { data } = await supabaseAdmin.from('menu').select('*');
     window._menuData = {};
     (data || []).forEach(row => {
       if (!window._menuData[row.day]) window._menuData[row.day] = {};
@@ -1078,7 +1103,7 @@
     });
     // Upsert each meal
     for (const meal of MEALS) {
-      const { error } = await supabase.from('menu').upsert({
+      const { error } = await supabaseAdmin.from('menu').upsert({
         day: day,
         meal: meal,
         items: updates[meal]
@@ -1094,7 +1119,7 @@
   //  TRANSPORT
   // ============================================================
   async function loadTransportAdmin() {
-    const { data } = await supabase.from('transport').select('*');
+    const { data } = await supabaseAdmin.from('transport').select('*');
     const container = document.getElementById('transport-admin-list');
     if (!data || data.length === 0) { container.innerHTML = '<div class="empty-state">No shuttles.</div>'; return; }
     container.innerHTML = data.map(t => `
@@ -1111,7 +1136,7 @@
 
   async function deleteTransport(id) {
     if (!confirm('Delete shuttle?')) return;
-    await supabase.from('transport').delete().eq('id', id);
+    await supabaseAdmin.from('transport').delete().eq('id', id);
     loadTransportAdmin();
     toast('Deleted', 'Shuttle removed.');
   }
@@ -1123,7 +1148,7 @@
     if (!route) return;
     const time = prompt('Time/status:');
     if (!time) return;
-    supabase.from('transport').insert({ name, route, time, status: 'scheduled', translations: {} })
+    supabaseAdmin.from('transport').insert({ name, route, time, status: 'scheduled', translations: {} })
       .then(() => { loadTransportAdmin(); toast('Added', 'Shuttle created.'); });
   }
 
@@ -1131,7 +1156,7 @@
   //  CONTACTS
   // ============================================================
   async function loadContactsAdmin() {
-    const { data } = await supabase.from('contacts').select('*');
+    const { data } = await supabaseAdmin.from('contacts').select('*');
     const container = document.getElementById('contacts-admin-list');
     if (!data || data.length === 0) { container.innerHTML = '<div class="empty-state">No contacts.</div>'; return; }
     container.innerHTML = data.map(c => `
@@ -1150,7 +1175,7 @@
 
   async function deleteContact(id) {
     if (!confirm('Delete contact?')) return;
-    await supabase.from('contacts').delete().eq('id', id);
+    await supabaseAdmin.from('contacts').delete().eq('id', id);
     loadContactsAdmin();
     toast('Deleted', 'Contact removed.');
   }
@@ -1162,7 +1187,7 @@
     if (!phone) return;
     const subtitle = prompt('Subtitle:') || '';
     const category = prompt('Category (emergency/ops/services):') || 'services';
-    supabase.from('contacts').insert({ title, phone, subtitle, category, translations: {} })
+    supabaseAdmin.from('contacts').insert({ title, phone, subtitle, category, translations: {} })
       .then(() => { loadContactsAdmin(); toast('Added', 'Contact created.'); });
   }
 
@@ -1170,7 +1195,7 @@
   //  SETTINGS
   // ============================================================
   async function loadSettings() {
-    const { data } = await supabase.from('camp_settings').select('*').limit(1);
+    const { data } = await supabaseAdmin.from('camp_settings').select('*').limit(1);
     const s = data?.[0] || {};
     document.getElementById('admin-camp-name').value = s.camp_name || '';
     document.getElementById('admin-camp-region').value = s.region || '';
@@ -1201,11 +1226,11 @@
     });
     obj.companies = document.getElementById('admin-companies').value.split('\n').filter(Boolean).map(s => s.trim());
     // Upsert
-    const { data } = await supabase.from('camp_settings').select('id').limit(1);
+    const { data } = await supabaseAdmin.from('camp_settings').select('id').limit(1);
     if (data && data.length) {
-      await supabase.from('camp_settings').update(obj).eq('id', data[0].id);
+      await supabaseAdmin.from('camp_settings').update(obj).eq('id', data[0].id);
     } else {
-      await supabase.from('camp_settings').insert(obj);
+      await supabaseAdmin.from('camp_settings').insert(obj);
     }
     toast('Saved', 'Settings updated.');
   }
