@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <!-- Same head as index.html, plus admin-specific CSS -->
+  <title>BaseCamp Admin</title>
+  <style>
+    /* Reuse same root variables and general styles */
+    /* Admin-specific styles: sidebar, cards, tables */
+  </style>
+</head>
+<body>
+  <div class="admin-layout">
+    <!-- Sidebar -->
+    <nav class="admin-sidebar">
+      <div class="logo">BaseCamp Admin</div>
+      <ul>
+        <li data-tab="dashboard">Dashboard</li>
+        <li data-tab="languages">Languages</li>
+        <li data-tab="translations">Static Translations</li>
+        <li data-tab="announcements">Announcements</li>
+        <li data-tab="events">Events</li>
+        <li data-tab="facilities">Facilities</li>
+        <li data-tab="prayer">Prayer Times</li>
+        <li data-tab="menu">Menu</li>
+        <li data-tab="transport">Transport</li>
+        <li data-tab="contacts">Contacts</li>
+        <li data-tab="settings">Site Settings</li>
+      </ul>
+      <div class="admin-footer">
+        <button id="logout-btn">Logout</button>
+      </div>
+    </nav>
+    <!-- Main content -->
+    <main class="admin-content">
+      <div id="tab-dashboard" class="tab-pane active">Dashboard summary...</div>
+      <div id="tab-languages" class="tab-pane">...language management...</div>
+      <!-- Other tabs -->
+    </main>
+  </div>
+  <script type="module">
+    // Use Supabase client, fetch data, manage tabs, CRUD operations
+    // We'll reuse the same supabase client and helpers from index.js
+  </script>
+</body>
+</html>
