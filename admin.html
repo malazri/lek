@@ -10,7 +10,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <style>
-    /* ===== All styles (same as before) ===== */
     :root {
       --bg: #0a0d13;
       --surface: #121826;
@@ -223,20 +222,6 @@
       margin-top:6px;
       line-height:1.4;
     }
-    .admin-item .translation-toggle {
-      margin-top:10px;
-      cursor:pointer;
-      color:var(--teal);
-      font-size:0.75rem;
-      font-weight:600;
-      background:none;
-      border:none;
-      display:inline-flex;
-      align-items:center;
-      gap:6px;
-      padding:4px 0;
-    }
-    .admin-item .translation-toggle:hover { opacity:0.8; }
     .admin-item .translations-section {
       display:none;
       margin-top:12px;
@@ -303,9 +288,6 @@
     .geo-pin { width:28px; height:28px; border-radius:50% 50% 50% 0; transform:rotate(-45deg); display:flex; align-items:center; justify-content:center; box-shadow:0 4px 12px rgba(0,0,0,0.5); border:2px solid rgba(10,13,19,0.5); background:var(--amber); }
     .geo-pin i { transform:rotate(45deg); color:#0a0d13; font-size:0.75rem; }
 
-    .icon-preview { display:inline-flex; align-items:center; gap:8px; }
-    .icon-preview i { font-size:1.2rem; color:var(--amber); }
-
     @media (max-width:768px) {
       .admin-sidebar { width:60px; padding:12px 0; }
       .admin-sidebar .logo { font-size:0; padding:0 12px 12px; }
@@ -322,7 +304,6 @@
 </head>
 <body>
 
-<!-- TOAST -->
 <div id="toast" class="toast-notification">
   <div style="display:flex;align-items:center;gap:10px;">
     <i class="fa-solid fa-tower-broadcast" style="color:var(--amber);font-size:1.15rem;"></i>
@@ -330,7 +311,6 @@
   </div>
 </div>
 
-<!-- LOGIN MODAL -->
 <div id="login-modal" class="modal-overlay" style="display:flex;">
   <div class="modal-card">
     <h2><i class="fa-solid fa-lock" style="color:var(--amber)"></i> Admin Login</h2>
@@ -349,7 +329,6 @@
   </div>
 </div>
 
-<!-- ADMIN LAYOUT -->
 <div class="admin-layout" id="admin-layout" style="display:none;">
   <nav class="admin-sidebar">
     <div class="logo"><i class="fa-solid fa-gear"></i> BaseCamp</div>
@@ -372,7 +351,6 @@
   </nav>
 
   <main class="admin-content" id="admin-content">
-    <!-- DASHBOARD -->
     <div id="tab-dashboard" class="tab-pane active">
       <div class="admin-card">
         <h3><i class="fa-solid fa-gauge-high"></i> Dashboard</h3>
@@ -386,7 +364,6 @@
       </div>
     </div>
 
-    <!-- LANGUAGES -->
     <div id="tab-languages" class="tab-pane">
       <div class="admin-card">
         <h3><i class="fa-solid fa-language"></i> Languages</h3>
@@ -402,7 +379,6 @@
       </div>
     </div>
 
-    <!-- TRANSLATIONS -->
     <div id="tab-translations" class="tab-pane">
       <div class="admin-card">
         <h3><i class="fa-solid fa-font"></i> Static Translations</h3>
@@ -414,8 +390,8 @@
               <select id="trans-lang-select" class="form-control"></select>
             </div>
           </div>
-          <div class="col" style="display:flex;align-items:flex-end;gap:8px;">
-            <button class="btn btn-secondary" onclick="autoTranslateStatic()"><i class="fa-solid fa-robot"></i> Auto‑translate missing</button>
+          <div class="col" style="display:flex;align-items:flex-end;gap:8px;flex-wrap:wrap;">
+            <button class="btn btn-secondary" onclick="autoTranslateStatic()"><i class="fa-solid fa-robot"></i> Auto‑translate</button>
             <button class="btn btn-secondary" onclick="addNewTranslationKey()"><i class="fa-solid fa-plus"></i> New Key</button>
             <button class="btn btn-success" onclick="seedTranslations()"><i class="fa-solid fa-seedling"></i> Seed Translations</button>
           </div>
@@ -424,7 +400,6 @@
       </div>
     </div>
 
-    <!-- ANNOUNCEMENTS -->
     <div id="tab-announcements" class="tab-pane">
       <div class="admin-card">
         <h3><i class="fa-solid fa-bullhorn"></i> Announcements</h3>
@@ -445,7 +420,6 @@
       </div>
     </div>
 
-    <!-- EVENTS -->
     <div id="tab-events" class="tab-pane">
       <div class="admin-card">
         <h3><i class="fa-solid fa-calendar-days"></i> Events</h3>
@@ -468,7 +442,6 @@
       </div>
     </div>
 
-    <!-- FACILITIES -->
     <div id="tab-facilities" class="tab-pane">
       <div class="admin-card">
         <h3><i class="fa-solid fa-map-location-dot"></i> Facilities</h3>
@@ -518,7 +491,6 @@
       </div>
     </div>
 
-    <!-- PRAYER -->
     <div id="tab-prayer" class="tab-pane">
       <div class="admin-card">
         <h3><i class="fa-solid fa-mosque"></i> Prayer Times</h3>
@@ -530,7 +502,6 @@
       </div>
     </div>
 
-    <!-- MENU -->
     <div id="tab-menu" class="tab-pane">
       <div class="admin-card">
         <h3><i class="fa-solid fa-utensils"></i> Dining Menu</h3>
@@ -541,7 +512,6 @@
       </div>
     </div>
 
-    <!-- TRANSPORT -->
     <div id="tab-transport" class="tab-pane">
       <div class="admin-card">
         <h3><i class="fa-solid fa-bus"></i> Transport Schedule</h3>
@@ -561,7 +531,6 @@
       </div>
     </div>
 
-    <!-- CONTACTS -->
     <div id="tab-contacts" class="tab-pane">
       <div class="admin-card">
         <h3><i class="fa-solid fa-address-book"></i> Contacts</h3>
@@ -590,7 +559,6 @@
       </div>
     </div>
 
-    <!-- SETTINGS -->
     <div id="tab-settings" class="tab-pane">
       <div class="admin-card">
         <h3><i class="fa-solid fa-sliders"></i> Site Settings</h3>
@@ -616,7 +584,7 @@
       <h2><i class="fa-solid fa-map-location-dot" style="color:var(--amber)"></i> Pick Location</h2>
       <div class="icon-btn" onclick="closeModal('location-picker-modal')" style="width:38px;height:38px;background:var(--surface-2);border-radius:11px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border-soft);color:var(--text);cursor:pointer;"><i class="fa-solid fa-xmark"></i></div>
     </div>
-    <p class="note-text" style="font-size:0.75rem;color:var(--text-muted);margin-bottom:12px;">Click on the map to drop a pin, or drag the existing pin. Coordinates will update automatically.</p>
+    <p class="note-text" style="font-size:0.75rem;color:var(--text-muted);margin-bottom:12px;">Click on the map to drop a pin, or drag the existing pin.</p>
     <div class="map-box"><div id="picker-map"></div></div>
     <div id="picker-coords-display" style="text-align:center;font-family:var(--font-mono);font-size:0.85rem;margin:12px 0;color:var(--text-muted);">No location selected</div>
     <div style="display:flex;gap:10px;flex-wrap:wrap;">
@@ -665,7 +633,7 @@
   const DAYS = ['Sat','Sun','Mon','Tue','Wed','Thu','Fri'];
   const MEALS = ['Breakfast','Lunch','Dinner'];
 
-  // Data arrays
+  // Data arrays – these hold the current data from Supabase
   let announcementsData = [];
   let eventsData = [];
   let facilitiesData = [];
@@ -685,7 +653,6 @@
   let pickerLat = null;
   let pickerLng = null;
 
-  // CAMP COORDINATES (Updated)
   const CAMP_LAT = 22.832927;
   const CAMP_LNG = 55.325941;
 
@@ -918,7 +885,6 @@
   // ============================================================
   //  STATIC TRANSLATIONS
   // ============================================================
-  // Seed translations function
   const DEFAULT_TRANSLATIONS = {
     en: {
       langBtn: "عربي",
@@ -992,7 +958,7 @@
         }
       }
       toast('Success', 'All translations seeded.');
-      loadStaticKeys();
+      await loadStaticKeys();
       const sel = document.getElementById('trans-lang-select');
       if (sel) renderStaticTranslations(sel.value);
     } catch (err) {
@@ -1057,7 +1023,7 @@
   }
 
   async function addNewTranslationKey() {
-    const key = prompt('Enter new translation key (e.g., "newLabel"):');
+    const key = prompt('Enter new translation key:');
     if (!key) return;
     try {
       const { error } = await window.supabaseClient.from('translations').insert({ language_code: 'en', key, translation: key });
@@ -1065,7 +1031,7 @@
       await loadStaticKeys();
       const sel = document.getElementById('trans-lang-select');
       if (sel) renderStaticTranslations(sel.value);
-      toast('Added', 'New key created. Now translate it for other languages.');
+      toast('Added', 'New key created.');
     } catch (err) {
       toast('Error', err.message);
     }
@@ -1079,12 +1045,11 @@
       const existingSet = new Set(existing?.map(r => r.key) || []);
       const { data: enTrans } = await window.supabaseClient.from('translations').select('key, translation').eq('language_code', 'en');
       const missing = enTrans?.filter(r => !existingSet.has(r.key)) || [];
-      if (missing.length === 0) { toast('Info', 'All keys already translated.'); return; }
+      if (missing.length === 0) { toast('Info', 'All keys translated.'); return; }
       const items = missing.map(r => ({ table: 'translations', id: null, field: 'translation', text: r.translation }));
-      const { data: result, error } = await window.supabaseClient.functions.invoke('translate-content', {
+      await window.supabaseClient.functions.invoke('translate-content', {
         body: { target_language: lang, source_language: 'en', items }
       });
-      if (error) throw error;
       toast('Success', 'Auto‑translation completed.');
       renderStaticTranslations(lang);
     } catch (err) {
@@ -1203,10 +1168,15 @@
     if (btn) btn.textContent = isOpen ? 'Show Translations' : 'Hide Translations';
   }
 
-  // ---- EDIT / ADD / CANCEL ----
+  // ---- EDIT / ADD / CANCEL (fixed) ----
   function editAnnouncement(id) {
-    const item = announcementsData.find(a => a.id === id);
-    if (!item) { toast('Error', 'Item not found'); return; }
+    // Find the item in the data array – ensure both are strings
+    const item = announcementsData.find(a => String(a.id) === String(id));
+    if (!item) {
+      toast('Error', 'Item not found. Refreshing data...');
+      loadAnnouncementsAdmin();
+      return;
+    }
     editingAnnouncementId = id;
     document.getElementById('ann-title').value = item.title;
     document.getElementById('ann-description').value = item.description;
@@ -1232,21 +1202,27 @@
     document.getElementById('ann-date').value = '';
   }
 
-  function submitAnnouncement() {
+  async function submitAnnouncement() {
     const title = document.getElementById('ann-title').value.trim();
     const desc = document.getElementById('ann-description').value.trim();
     const location = document.getElementById('ann-location').value.trim() || 'Camp';
     const date = document.getElementById('ann-date').value || new Date().toISOString().split('T')[0];
     if (!title || !desc) { toast('Error', 'Title and description required.'); return; }
 
-    if (editingAnnouncementId) {
-      window.supabaseClient.from('announcements').update({ title, description: desc, location, date }).eq('id', editingAnnouncementId)
-        .then(() => { toast('Updated', 'Announcement updated.'); cancelAnnouncementEdit(); loadAnnouncementsAdmin(); })
-        .catch(err => toast('Error', err.message));
-    } else {
-      window.supabaseClient.from('announcements').insert({ title, description: desc, location, date, translations: {} })
-        .then(() => { toast('Added', 'Announcement created.'); clearAnnouncementForm(); loadAnnouncementsAdmin(); })
-        .catch(err => toast('Error', err.message));
+    try {
+      if (editingAnnouncementId) {
+        await window.supabaseClient.from('announcements').update({ title, description: desc, location, date }).eq('id', editingAnnouncementId);
+        toast('Updated', 'Announcement updated.');
+        cancelAnnouncementEdit();
+        await loadAnnouncementsAdmin();
+      } else {
+        await window.supabaseClient.from('announcements').insert({ title, description: desc, location, date, translations: {} });
+        toast('Added', 'Announcement created.');
+        clearAnnouncementForm();
+        await loadAnnouncementsAdmin();
+      }
+    } catch (err) {
+      toast('Error', err.message);
     }
   }
 
@@ -1254,7 +1230,7 @@
     if (!confirm('Delete this announcement?')) return;
     try {
       await window.supabaseClient.from('announcements').delete().eq('id', id);
-      loadAnnouncementsAdmin();
+      await loadAnnouncementsAdmin();
       toast('Deleted', 'Announcement removed.');
     } catch (err) {
       toast('Error', err.message);
@@ -1363,8 +1339,12 @@
   }
 
   function editEvent(id) {
-    const item = eventsData.find(e => e.id === id);
-    if (!item) { toast('Error', 'Item not found'); return; }
+    const item = eventsData.find(e => String(e.id) === String(id));
+    if (!item) {
+      toast('Error', 'Item not found. Refreshing data...');
+      loadEventsAdmin();
+      return;
+    }
     editingEventId = id;
     document.getElementById('ev-title').value = item.title;
     document.getElementById('ev-category').value = item.category;
@@ -1392,7 +1372,7 @@
     document.getElementById('ev-location').value = '';
   }
 
-  function submitEvent() {
+  async function submitEvent() {
     const title = document.getElementById('ev-title').value.trim();
     const category = document.getElementById('ev-category').value.trim() || 'Community';
     const datetime = document.getElementById('ev-datetime').value;
@@ -1401,14 +1381,20 @@
     const dateDisplay = new Date(datetime).toLocaleString();
     const timeVal = new Date(datetime).getTime();
 
-    if (editingEventId) {
-      window.supabaseClient.from('events').update({ title, category, date: dateDisplay, location, timeVal }).eq('id', editingEventId)
-        .then(() => { toast('Updated', 'Event updated.'); cancelEventEdit(); loadEventsAdmin(); })
-        .catch(err => toast('Error', err.message));
-    } else {
-      window.supabaseClient.from('events').insert({ title, category, date: dateDisplay, location, timeVal, icon: 'fa-calendar-days', live: false, translations: {} })
-        .then(() => { toast('Added', 'Event created.'); clearEventForm(); loadEventsAdmin(); })
-        .catch(err => toast('Error', err.message));
+    try {
+      if (editingEventId) {
+        await window.supabaseClient.from('events').update({ title, category, date: dateDisplay, location, timeVal }).eq('id', editingEventId);
+        toast('Updated', 'Event updated.');
+        cancelEventEdit();
+        await loadEventsAdmin();
+      } else {
+        await window.supabaseClient.from('events').insert({ title, category, date: dateDisplay, location, timeVal, icon: 'fa-calendar-days', live: false, translations: {} });
+        toast('Added', 'Event created.');
+        clearEventForm();
+        await loadEventsAdmin();
+      }
+    } catch (err) {
+      toast('Error', err.message);
     }
   }
 
@@ -1416,7 +1402,7 @@
     if (!confirm('Delete event?')) return;
     try {
       await window.supabaseClient.from('events').delete().eq('id', id);
-      loadEventsAdmin();
+      await loadEventsAdmin();
       toast('Deleted', 'Event removed.');
     } catch (err) {
       toast('Error', err.message);
@@ -1525,8 +1511,12 @@
   }
 
   function editFacility(id) {
-    const item = facilitiesData.find(f => f.id === id);
-    if (!item) { toast('Error', 'Item not found'); return; }
+    const item = facilitiesData.find(f => String(f.id) === String(id));
+    if (!item) {
+      toast('Error', 'Item not found. Refreshing data...');
+      loadFacilitiesAdmin();
+      return;
+    }
     editingFacilityId = id;
     document.getElementById('fac-name').value = item.name;
     document.getElementById('fac-icon').value = item.icon;
@@ -1554,7 +1544,7 @@
     document.getElementById('fac-lng').value = CAMP_LNG.toString();
   }
 
-  function submitFacility() {
+  async function submitFacility() {
     const name = document.getElementById('fac-name').value.trim();
     const icon = document.getElementById('fac-icon').value;
     const info = document.getElementById('fac-info').value.trim();
@@ -1562,15 +1552,21 @@
     const lng = parseFloat(document.getElementById('fac-lng').value) || CAMP_LNG;
     if (!name || !info) { toast('Error', 'Name and info required.'); return; }
 
-    if (editingFacilityId) {
-      window.supabaseClient.from('facilities').update({ name, icon, info, lat, lng }).eq('id', editingFacilityId)
-        .then(() => { toast('Updated', 'Facility updated.'); cancelFacilityEdit(); loadFacilitiesAdmin(); })
-        .catch(err => toast('Error', err.message));
-    } else {
-      const color = ['#ff7a1a','#f0453d','#2dd4bf','#c9a876','#3b82f6','#a78bfa'][facilitiesData.length % 6];
-      window.supabaseClient.from('facilities').insert({ name, icon, info, lat, lng, color, translations: {} })
-        .then(() => { toast('Added', 'Facility created.'); clearFacilityForm(); loadFacilitiesAdmin(); })
-        .catch(err => toast('Error', err.message));
+    try {
+      if (editingFacilityId) {
+        await window.supabaseClient.from('facilities').update({ name, icon, info, lat, lng }).eq('id', editingFacilityId);
+        toast('Updated', 'Facility updated.');
+        cancelFacilityEdit();
+        await loadFacilitiesAdmin();
+      } else {
+        const color = ['#ff7a1a','#f0453d','#2dd4bf','#c9a876','#3b82f6','#a78bfa'][facilitiesData.length % 6];
+        await window.supabaseClient.from('facilities').insert({ name, icon, info, lat, lng, color, translations: {} });
+        toast('Added', 'Facility created.');
+        clearFacilityForm();
+        await loadFacilitiesAdmin();
+      }
+    } catch (err) {
+      toast('Error', err.message);
     }
   }
 
@@ -1578,7 +1574,7 @@
     if (!confirm('Delete facility?')) return;
     try {
       await window.supabaseClient.from('facilities').delete().eq('id', id);
-      loadFacilitiesAdmin();
+      await loadFacilitiesAdmin();
       toast('Deleted', 'Facility removed.');
     } catch (err) {
       toast('Error', err.message);
@@ -1658,7 +1654,7 @@
       prayerTimes = data || [];
       renderPrayerAdmin();
       const statusDiv = document.getElementById('prayer-fetch-status');
-      statusDiv.textContent = '⏳ Auto‑fetching prayer times from MARA Worker...';
+      statusDiv.textContent = '⏳ Auto‑fetching prayer times...';
       await fetchPrayerTimesWorker(true);
       statusDiv.textContent = '✅ Prayer times updated. You can manually edit below.';
     } catch (err) {
@@ -1696,8 +1692,7 @@
         }
       });
       for (const u of updates) {
-        const { error } = await window.supabaseClient.from('prayer_times').update({ adhan_time: u.adhan_time, iqama_offset: u.iqama_offset }).eq('id', u.id);
-        if (error) throw error;
+        await window.supabaseClient.from('prayer_times').update({ adhan_time: u.adhan_time, iqama_offset: u.iqama_offset }).eq('id', u.id);
       }
       toast('Saved', 'Prayer times updated.');
     } catch (err) {
@@ -1800,7 +1795,7 @@
     const dayMenu = menuData[day] || {};
     container.innerHTML = MEALS.map(meal => `
       <div class="form-group">
-        <label>${meal} (comma separated items)</label>
+        <label>${meal} (comma separated)</label>
         <input type="text" class="form-control" id="menu-${day}-${meal}" value="${(dayMenu[meal] || []).join(', ')}">
       </div>
     `).join('');
@@ -1815,12 +1810,11 @@
         updates[meal] = val.split(',').map(s => s.trim()).filter(Boolean);
       });
       for (const meal of MEALS) {
-        const { error } = await window.supabaseClient.from('menu').upsert({
+        await window.supabaseClient.from('menu').upsert({
           day: day,
           meal: meal,
           items: updates[meal]
         }, { onConflict: 'day, meal' });
-        if (error) throw error;
       }
       menuData[day] = updates;
       toast('Saved', 'Menu for '+day+' updated.');
@@ -1866,8 +1860,12 @@
   }
 
   function editTransport(id) {
-    const item = transportData.find(t => t.id === id);
-    if (!item) { toast('Error', 'Item not found'); return; }
+    const item = transportData.find(t => String(t.id) === String(id));
+    if (!item) {
+      toast('Error', 'Item not found. Refreshing data...');
+      loadTransportAdmin();
+      return;
+    }
     editingTransportId = id;
     document.getElementById('tr-name').value = item.name;
     document.getElementById('tr-route').value = item.route;
@@ -1891,20 +1889,26 @@
     document.getElementById('tr-time').value = '';
   }
 
-  function submitTransport() {
+  async function submitTransport() {
     const name = document.getElementById('tr-name').value.trim();
     const route = document.getElementById('tr-route').value.trim();
     const time = document.getElementById('tr-time').value.trim();
     if (!name || !route || !time) { toast('Error', 'All fields required.'); return; }
 
-    if (editingTransportId) {
-      window.supabaseClient.from('transport').update({ name, route, time }).eq('id', editingTransportId)
-        .then(() => { toast('Updated', 'Shuttle updated.'); cancelTransportEdit(); loadTransportAdmin(); })
-        .catch(err => toast('Error', err.message));
-    } else {
-      window.supabaseClient.from('transport').insert({ name, route, time, status: 'scheduled', translations: {} })
-        .then(() => { toast('Added', 'Shuttle created.'); clearTransportForm(); loadTransportAdmin(); })
-        .catch(err => toast('Error', err.message));
+    try {
+      if (editingTransportId) {
+        await window.supabaseClient.from('transport').update({ name, route, time }).eq('id', editingTransportId);
+        toast('Updated', 'Shuttle updated.');
+        cancelTransportEdit();
+        await loadTransportAdmin();
+      } else {
+        await window.supabaseClient.from('transport').insert({ name, route, time, status: 'scheduled', translations: {} });
+        toast('Added', 'Shuttle created.');
+        clearTransportForm();
+        await loadTransportAdmin();
+      }
+    } catch (err) {
+      toast('Error', err.message);
     }
   }
 
@@ -1912,7 +1916,7 @@
     if (!confirm('Delete shuttle?')) return;
     try {
       await window.supabaseClient.from('transport').delete().eq('id', id);
-      loadTransportAdmin();
+      await loadTransportAdmin();
       toast('Deleted', 'Shuttle removed.');
     } catch (err) {
       toast('Error', err.message);
@@ -1956,8 +1960,12 @@
   }
 
   function editContact(id) {
-    const item = contactsData.find(c => c.id === id);
-    if (!item) { toast('Error', 'Item not found'); return; }
+    const item = contactsData.find(c => String(c.id) === String(id));
+    if (!item) {
+      toast('Error', 'Item not found. Refreshing data...');
+      loadContactsAdmin();
+      return;
+    }
     editingContactId = id;
     document.getElementById('ct-title').value = item.title;
     document.getElementById('ct-phone').value = item.phone;
@@ -1983,21 +1991,27 @@
     document.getElementById('ct-category').value = 'services';
   }
 
-  function submitContact() {
+  async function submitContact() {
     const title = document.getElementById('ct-title').value.trim();
     const phone = document.getElementById('ct-phone').value.trim();
     const subtitle = document.getElementById('ct-subtitle').value.trim() || '';
     const category = document.getElementById('ct-category').value;
     if (!title || !phone) { toast('Error', 'Title and phone required.'); return; }
 
-    if (editingContactId) {
-      window.supabaseClient.from('contacts').update({ title, phone, subtitle, category }).eq('id', editingContactId)
-        .then(() => { toast('Updated', 'Contact updated.'); cancelContactEdit(); loadContactsAdmin(); })
-        .catch(err => toast('Error', err.message));
-    } else {
-      window.supabaseClient.from('contacts').insert({ title, phone, subtitle, category, translations: {} })
-        .then(() => { toast('Added', 'Contact created.'); clearContactForm(); loadContactsAdmin(); })
-        .catch(err => toast('Error', err.message));
+    try {
+      if (editingContactId) {
+        await window.supabaseClient.from('contacts').update({ title, phone, subtitle, category }).eq('id', editingContactId);
+        toast('Updated', 'Contact updated.');
+        cancelContactEdit();
+        await loadContactsAdmin();
+      } else {
+        await window.supabaseClient.from('contacts').insert({ title, phone, subtitle, category, translations: {} });
+        toast('Added', 'Contact created.');
+        clearContactForm();
+        await loadContactsAdmin();
+      }
+    } catch (err) {
+      toast('Error', err.message);
     }
   }
 
@@ -2005,7 +2019,7 @@
     if (!confirm('Delete contact?')) return;
     try {
       await window.supabaseClient.from('contacts').delete().eq('id', id);
-      loadContactsAdmin();
+      await loadContactsAdmin();
       toast('Deleted', 'Contact removed.');
     } catch (err) {
       toast('Error', err.message);
@@ -2067,7 +2081,6 @@
   //  INIT
   // ============================================================
   document.addEventListener('DOMContentLoaded', function() {
-    // Set default facility coordinates
     document.getElementById('fac-lat').value = CAMP_LAT;
     document.getElementById('fac-lng').value = CAMP_LNG;
     checkSession();
