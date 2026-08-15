@@ -1651,27 +1651,417 @@
   // ============================================================
   //  PRAYER TIMES
   // ============================================================
-  // (unchanged – same as previous)
+  async function loadPrayerAdmin() {
+    try {
+      const { data, error } = await window.supabaseClient.from('prayer_times').select('*').order('id');
+      if (error) throw error;
+      prayerTimes = data || [];
+      renderPrayerAdmin();
+      const statusDiv = document.getElementById('prayer-fetch-status');
+      statusDiv.textContent = '⏳ Auto‑fetching prayer times from MARA Worker...';
+      await fetchPrayerTimesWorker(true);
+      statusDiv.textContent = '✅ Prayer times updated. You can manually edit below.';
+    } catch (err) {
+      toast('Error', 'Failed to load prayer times: ' + err.message);
+    }
+  }
+
+  function renderPrayerAdmin() {
+    const container = document.getElementById('prayer-admin-fields');
+    container.innerHTML = prayerTimes.map((p, idx) => `
+      <div class="admin-card" style="padding:12px;margin-bottom:8px;">
+        <div style="display:flex;gap:16px;align-items:center;flex-wrap:wrap;">
+          <span style="font-weight:600;width:80px;">${p.name}</span>
+          <div class="form-group" style="margin:0;flex:1;">
+            <label>Adhan</label>
+            <input type="text" class="form-control" id="prayer-time-${idx}" value="${p.adhan_time}" placeholder="HH:MM">
+          </div>
+          <div class="form-group" style="margin:0;flex:0 0 100px;">
+            <label>Iqama Offset (min)</label>
+            <input type="number" class="form-control" id="prayer-offset-${idx}" value="${p.iqama_offset}" min="0">
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  async function savePrayerTimes() {
+    try {
+      const updates = [];
+      prayerTimes.forEach((p, idx) => {
+        const time = document.getElementById('prayer-time-'+idx).value.trim();
+        const offset = parseInt(document.getElementById('prayer-offset-'+idx).value);
+        if (time && !isNaN(offset)) {
+          updates.push({ id: p.id, adhan_time: time, iqama_offset: offset });
+        }
+      });
+      for (const u of updates) {
+        const { error } = await window.supabaseClient.from('prayer_times').update({ adhan_time: u.adhan_time, iqama_offset: u.iqama_offset }).eq('id', u.id);
+        if (error) throw error;
+      }
+      toast('Saved', 'Prayer times updated.');
+    } catch (err) {
+      toast('Error', err.message);
+    }
+  }
+
+  async function fetchPrayerTimesWorker(silent = false) {
+    const WORKER_URL = "https://prayer-time.3ma-creative.workers.dev/";
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = now.getMonth()+1;
+    const day = now.getDate();
+    const url = `${WORKER_URL}?CityID=13&Month=${month}&Year=${year}&Day=${day}`;
+    try {
+      if (!silent) toast('Fetching', 'Contacting MARA Worker...');
+      const resp = await fetch(url);
+      if (!resp.ok) throw new Error('Worker error: '+resp.status);
+      const html = await resp.text();
+      const parser = new DOMParser();
+      const doc = parser.parseFromString(html, 'text/html');
+      const table = doc.querySelector('table');
+      if (!table) throw new Error('No table found');
+      const rows = table.querySelectorAll('tr');
+      let found = false;
+      rows.forEach((row, idx) => {
+        if (idx === 0) return;
+        const cols = row.querySelectorAll('td');
+        if (cols.length >= 7) {
+          const dateStr = cols[0].textContent.trim();
+          const dayMatch = dateStr.match(/\b\d{1,2}\b/);
+          if (dayMatch && parseInt(dayMatch[0]) === day) {
+            const times = [cols[1].textContent.trim(), cols[2].textContent.trim(), cols[3].textContent.trim(), cols[4].textContent.trim(), cols[5].textContent.trim(), cols[6].textContent.trim()];
+            const map = { Fajr: 0, Dhuhr: 2, Asr: 3, Maghrib: 4, Isha: 5 };
+            Object.keys(map).forEach(name => {
+              const idx2 = map[name];
+              const t = times[idx2];
+              if (t && t.match(/\d{1,2}[:.]\d{2}/)) {
+                const clean = t.replace('.', ':');
+                const p = prayerTimes.find(pt => pt.name === name);
+                if (p) p.adhan_time = clean;
+              }
+            });
+            found = true;
+          }
+        }
+      });
+      if (!found) throw new Error('Could not find today\'s row');
+      for (const p of prayerTimes) {
+        await window.supabaseClient.from('prayer_times').update({ adhan_time: p.adhan_time }).eq('id', p.id);
+      }
+      renderPrayerAdmin();
+      if (!silent) toast('Success', 'Prayer times updated from worker.');
+    } catch (err) {
+      if (!silent) toast('Error', err.message);
+      else console.warn('Auto-fetch prayer error:', err);
+    }
+  }
 
   // ============================================================
   //  MENU
   // ============================================================
-  // (unchanged – same as previous)
+  let menuData = {};
+  async function loadMenuAdmin() {
+    try {
+      const { data, error } = await window.supabaseClient.from('menu').select('*');
+      if (error) throw error;
+      menuData = {};
+      (data || []).forEach(row => {
+        if (!menuData[row.day]) menuData[row.day] = {};
+        menuData[row.day][row.meal] = row.items;
+      });
+      DAYS.forEach(day => {
+        if (!menuData[day]) menuData[day] = {};
+        MEALS.forEach(meal => {
+          if (!menuData[day][meal]) menuData[day][meal] = [];
+        });
+      });
+      renderAdminDayTabs();
+    } catch (err) {
+      toast('Error', 'Failed to load menu: ' + err.message);
+    }
+  }
+
+  function renderAdminDayTabs() {
+    const container = document.getElementById('admin-day-tabs');
+    container.innerHTML = DAYS.map(d => `
+      <div class="lang-tab ${d === adminActiveDay ? 'active' : ''}" onclick="setAdminDay('${d}')">${d}</div>
+    `).join('');
+    renderAdminMenuFields(adminActiveDay);
+  }
+
+  function setAdminDay(day) {
+    adminActiveDay = day;
+    renderAdminDayTabs();
+  }
+
+  function renderAdminMenuFields(day) {
+    const container = document.getElementById('admin-menu-fields');
+    const dayMenu = menuData[day] || {};
+    container.innerHTML = MEALS.map(meal => `
+      <div class="form-group">
+        <label>${meal} (comma separated items)</label>
+        <input type="text" class="form-control" id="menu-${day}-${meal}" value="${(dayMenu[meal] || []).join(', ')}">
+      </div>
+    `).join('');
+  }
+
+  async function saveMenuDay() {
+    try {
+      const day = adminActiveDay;
+      const updates = {};
+      MEALS.forEach(meal => {
+        const val = document.getElementById(`menu-${day}-${meal}`).value;
+        updates[meal] = val.split(',').map(s => s.trim()).filter(Boolean);
+      });
+      for (const meal of MEALS) {
+        const { error } = await window.supabaseClient.from('menu').upsert({
+          day: day,
+          meal: meal,
+          items: updates[meal]
+        }, { onConflict: 'day, meal' });
+        if (error) throw error;
+      }
+      menuData[day] = updates;
+      toast('Saved', 'Menu for '+day+' updated.');
+    } catch (err) {
+      toast('Error', err.message);
+    }
+  }
 
   // ============================================================
   //  TRANSPORT
   // ============================================================
-  // (unchanged – same as previous, but with edit/cancel fixed)
+  async function loadTransportAdmin() {
+    try {
+      const { data, error } = await window.supabaseClient.from('transport').select('*');
+      if (error) throw error;
+      transportData = data || [];
+      renderTransportList();
+    } catch (err) {
+      toast('Error', 'Failed to load transport: ' + err.message);
+    }
+  }
+
+  function renderTransportList() {
+    const container = document.getElementById('transport-admin-list');
+    if (!transportData || transportData.length === 0) {
+      container.innerHTML = '<div class="empty-state">No shuttles.</div>';
+      return;
+    }
+    container.innerHTML = transportData.map(t => `
+      <div class="admin-item" data-id="${t.id}">
+        <div class="item-header">
+          <div>
+            <div class="item-title">${t.name}</div>
+            <div class="item-meta">${t.route} · ${t.time}</div>
+          </div>
+          <div class="item-actions">
+            <button class="btn btn-secondary btn-sm" onclick="editTransport('${t.id}')"><i class="fa-solid fa-pen"></i> Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteTransport('${t.id}')"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function editTransport(id) {
+    const item = transportData.find(t => t.id === id);
+    if (!item) { toast('Error', 'Item not found'); return; }
+    editingTransportId = id;
+    document.getElementById('tr-name').value = item.name;
+    document.getElementById('tr-route').value = item.route;
+    document.getElementById('tr-time').value = item.time;
+    document.getElementById('transport-form-title').textContent = 'Edit Shuttle';
+    document.getElementById('tr-submit-btn').innerHTML = '<i class="fa-solid fa-save"></i> Update Shuttle';
+    document.getElementById('tr-cancel-btn').style.display = 'inline-flex';
+  }
+
+  function cancelTransportEdit() {
+    editingTransportId = null;
+    clearTransportForm();
+    document.getElementById('transport-form-title').textContent = 'Add New Shuttle';
+    document.getElementById('tr-submit-btn').innerHTML = '<i class="fa-solid fa-plus"></i> Add Shuttle';
+    document.getElementById('tr-cancel-btn').style.display = 'none';
+  }
+
+  function clearTransportForm() {
+    document.getElementById('tr-name').value = '';
+    document.getElementById('tr-route').value = '';
+    document.getElementById('tr-time').value = '';
+  }
+
+  function submitTransport() {
+    const name = document.getElementById('tr-name').value.trim();
+    const route = document.getElementById('tr-route').value.trim();
+    const time = document.getElementById('tr-time').value.trim();
+    if (!name || !route || !time) { toast('Error', 'All fields required.'); return; }
+
+    if (editingTransportId) {
+      window.supabaseClient.from('transport').update({ name, route, time }).eq('id', editingTransportId)
+        .then(() => { toast('Updated', 'Shuttle updated.'); cancelTransportEdit(); loadTransportAdmin(); })
+        .catch(err => toast('Error', err.message));
+    } else {
+      window.supabaseClient.from('transport').insert({ name, route, time, status: 'scheduled', translations: {} })
+        .then(() => { toast('Added', 'Shuttle created.'); clearTransportForm(); loadTransportAdmin(); })
+        .catch(err => toast('Error', err.message));
+    }
+  }
+
+  async function deleteTransport(id) {
+    if (!confirm('Delete shuttle?')) return;
+    try {
+      await window.supabaseClient.from('transport').delete().eq('id', id);
+      loadTransportAdmin();
+      toast('Deleted', 'Shuttle removed.');
+    } catch (err) {
+      toast('Error', err.message);
+    }
+  }
 
   // ============================================================
   //  CONTACTS
   // ============================================================
-  // (unchanged – same as previous, but with edit/cancel fixed)
+  async function loadContactsAdmin() {
+    try {
+      const { data, error } = await window.supabaseClient.from('contacts').select('*');
+      if (error) throw error;
+      contactsData = data || [];
+      renderContactsList();
+    } catch (err) {
+      toast('Error', 'Failed to load contacts: ' + err.message);
+    }
+  }
+
+  function renderContactsList() {
+    const container = document.getElementById('contacts-admin-list');
+    if (!contactsData || contactsData.length === 0) {
+      container.innerHTML = '<div class="empty-state">No contacts.</div>';
+      return;
+    }
+    container.innerHTML = contactsData.map(c => `
+      <div class="admin-item" data-id="${c.id}">
+        <div class="item-header">
+          <div>
+            <div class="item-title">${c.title}</div>
+            <div class="item-meta"><span style="color:var(--text-dim);">${c.category}</span> · ${c.subtitle} · ${c.phone}</div>
+          </div>
+          <div class="item-actions">
+            <button class="btn btn-secondary btn-sm" onclick="editContact('${c.id}')"><i class="fa-solid fa-pen"></i> Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteContact('${c.id}')"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function editContact(id) {
+    const item = contactsData.find(c => c.id === id);
+    if (!item) { toast('Error', 'Item not found'); return; }
+    editingContactId = id;
+    document.getElementById('ct-title').value = item.title;
+    document.getElementById('ct-phone').value = item.phone;
+    document.getElementById('ct-subtitle').value = item.subtitle || '';
+    document.getElementById('ct-category').value = item.category;
+    document.getElementById('contact-form-title').textContent = 'Edit Contact';
+    document.getElementById('ct-submit-btn').innerHTML = '<i class="fa-solid fa-save"></i> Update Contact';
+    document.getElementById('ct-cancel-btn').style.display = 'inline-flex';
+  }
+
+  function cancelContactEdit() {
+    editingContactId = null;
+    clearContactForm();
+    document.getElementById('contact-form-title').textContent = 'Add New Contact';
+    document.getElementById('ct-submit-btn').innerHTML = '<i class="fa-solid fa-plus"></i> Add Contact';
+    document.getElementById('ct-cancel-btn').style.display = 'none';
+  }
+
+  function clearContactForm() {
+    document.getElementById('ct-title').value = '';
+    document.getElementById('ct-phone').value = '';
+    document.getElementById('ct-subtitle').value = '';
+    document.getElementById('ct-category').value = 'services';
+  }
+
+  function submitContact() {
+    const title = document.getElementById('ct-title').value.trim();
+    const phone = document.getElementById('ct-phone').value.trim();
+    const subtitle = document.getElementById('ct-subtitle').value.trim() || '';
+    const category = document.getElementById('ct-category').value;
+    if (!title || !phone) { toast('Error', 'Title and phone required.'); return; }
+
+    if (editingContactId) {
+      window.supabaseClient.from('contacts').update({ title, phone, subtitle, category }).eq('id', editingContactId)
+        .then(() => { toast('Updated', 'Contact updated.'); cancelContactEdit(); loadContactsAdmin(); })
+        .catch(err => toast('Error', err.message));
+    } else {
+      window.supabaseClient.from('contacts').insert({ title, phone, subtitle, category, translations: {} })
+        .then(() => { toast('Added', 'Contact created.'); clearContactForm(); loadContactsAdmin(); })
+        .catch(err => toast('Error', err.message));
+    }
+  }
+
+  async function deleteContact(id) {
+    if (!confirm('Delete contact?')) return;
+    try {
+      await window.supabaseClient.from('contacts').delete().eq('id', id);
+      loadContactsAdmin();
+      toast('Deleted', 'Contact removed.');
+    } catch (err) {
+      toast('Error', err.message);
+    }
+  }
 
   // ============================================================
   //  SETTINGS
   // ============================================================
-  // (unchanged)
+  async function loadSettings() {
+    try {
+      const { data, error } = await window.supabaseClient.from('camp_settings').select('*').limit(1);
+      if (error) throw error;
+      const s = data?.[0] || {};
+      document.getElementById('admin-camp-name').value = s.camp_name || '';
+      document.getElementById('admin-camp-region').value = s.region || '';
+      document.getElementById('admin-camp-desc').value = s.description || '';
+      document.getElementById('admin-production').value = s.production || '';
+      document.getElementById('admin-personnel').value = s.personnel || '';
+      document.getElementById('admin-companies-count').value = s.companies_count || '';
+      document.getElementById('admin-established').value = s.established || '';
+      document.getElementById('admin-history').value = (s.history || []).map(h => h.title + ' | ' + h.desc).join('\n');
+      document.getElementById('admin-companies').value = (s.companies || []).join('\n');
+    } catch (err) {
+      toast('Error', 'Failed to load settings: ' + err.message);
+    }
+  }
+
+  async function saveSettings() {
+    try {
+      const obj = {
+        camp_name: document.getElementById('admin-camp-name').value,
+        region: document.getElementById('admin-camp-region').value,
+        description: document.getElementById('admin-camp-desc').value,
+        production: document.getElementById('admin-production').value,
+        personnel: document.getElementById('admin-personnel').value,
+        companies_count: document.getElementById('admin-companies-count').value,
+        established: document.getElementById('admin-established').value,
+      };
+      const historyText = document.getElementById('admin-history').value;
+      obj.history = historyText.split('\n').filter(Boolean).map(line => {
+        const [title, ...rest] = line.split('|');
+        return { title: title.trim(), desc: rest.join('|').trim() };
+      });
+      obj.companies = document.getElementById('admin-companies').value.split('\n').filter(Boolean).map(s => s.trim());
+      const { data } = await window.supabaseClient.from('camp_settings').select('id').limit(1);
+      if (data && data.length) {
+        await window.supabaseClient.from('camp_settings').update(obj).eq('id', data[0].id);
+      } else {
+        await window.supabaseClient.from('camp_settings').insert(obj);
+      }
+      toast('Saved', 'Settings updated.');
+    } catch (err) {
+      toast('Error', err.message);
+    }
+  }
 
   // ============================================================
   //  INIT
