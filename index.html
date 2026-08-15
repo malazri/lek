@@ -1,1566 +1,609 @@
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>BaseCamp — Lekhwair Camp Companion</title>
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" crossorigin="anonymous" id="fa-primary-link">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" rel="stylesheet">
-    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js">
-    </script>
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
-    </script>
-    <style>
-        /* All existing styles remain exactly the same as before */
-        :root {
-            --bg: #0a0d13;
-            --surface: #121826;
-            --surface-2: #19212f;
-            --surface-3: #212a3c;
-            --border: rgba(201, 168, 118, 0.14);
-            --border-soft: rgba(245, 243, 236, 0.06);
-            --sand: #c9a876;
-            --amber: #ff7a1a;
-            --amber-soft: rgba(255, 122, 26, 0.14);
-            --teal: #2dd4bf;
-            --teal-soft: rgba(45, 212, 191, 0.14);
-            --red: #f0453d;
-            --red-soft: rgba(240, 69, 61, 0.14);
-            --text: #f5f3ec;
-            --text-muted: #8d93a6;
-            --text-dim: #5b6274;
-            --r-lg: 18px;
-            --r-md: 12px;
-            --font-display: 'Space Grotesk', sans-serif;
-            --font-body: 'Inter', sans-serif;
-            --font-mono: 'IBM Plex Mono', monospace;
-            --font-ar: 'Tajawal', sans-serif;
-        }
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            -webkit-tap-highlight-color: transparent;
-            font-family: var(--font-body);
-        }
-        [dir="rtl"] * {
-            font-family: var(--font-ar);
-        }
-        [dir="rtl"] .fa-chevron-right::before {
-            content: "\f053";
-        }
-        body {
-            background: #000;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: calc(var(--vh, 1vh) * 100);
-            color: var(--text);
-            overflow: hidden;
-        }
-        .app-shell {
-            width: 100%;
-            max-width: 412px;
-            height: calc(var(--vh, 1vh) * 100);
-            max-height: 880px;
-            background: var(--bg);
-            border-radius: 34px;
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            overflow: hidden;
-            box-shadow: 0 30px 70px rgba(0, 0, 0, 0.85), 0 0 0 10px #0d1420;
-            background-image: radial-gradient(circle at 8% 0%, rgba(255, 122, 26, 0.05), transparent 45%), radial-gradient(circle at 100% 30%, rgba(45, 212, 191, 0.04), transparent 40%);
-        }
-        @media (min-width:769px) {
-            body {
-                padding: 24px;
-                overflow: auto;
-                background: #050709;
-                height: auto;
-                min-height: calc(var(--vh, 1vh) * 100);
-            }
-            .app-shell {
-                max-width: 1200px;
-                height: auto;
-                max-height: 96vh;
-                border-radius: 24px;
-                box-shadow: 0 40px 100px rgba(0, 0, 0, 0.7);
-            }
-            .main-scroll {
-                display: grid !important;
-                grid-template-columns: repeat(3, 1fr);
-                gap: 16px;
-                padding: 22px !important;
-                overflow-y: auto !important;
-                align-content: start;
-            }
-            .view {
-                display: block !important;
-                animation: none !important;
-                margin-bottom: 0 !important;
-            }
-            .nav-bar {
-                display: none !important;
-            }
-            #card-prayer {
-                grid-column: span 1;
-            }
-            #card-quickactions {
-                grid-column: span 2;
-            }
-            #card-announcement {
-                grid-column: span 3;
-            }
-            #card-about-overview {
-                grid-column: span 1;
-            }
-            #card-about-stats {
-                grid-column: span 2;
-            }
-            #card-about-history {
-                grid-column: span 1;
-            }
-            #card-about-companies {
-                grid-column: span 2;
-            }
-            #card-countdown {
-                grid-column: span 1;
-            }
-            #card-events {
-                grid-column: span 2;
-            }
-            #card-facility {
-                grid-column: span 3;
-            }
-            .reception-tag {
-                display: inline-flex !important;
-            }
-        }
-        .reception-tag {
-            display: none;
-            align-items: center;
-            gap: 6px;
-            background: var(--teal-soft);
-            border: 1px solid rgba(45, 212, 191, 0.35);
-            color: var(--teal);
-            padding: 5px 11px;
-            border-radius: 20px;
-            font-size: 0.68rem;
-            font-weight: 700;
-            letter-spacing: 0.03em;
-            text-transform: uppercase;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>BaseCamp — Lekhwair Camp Companion</title>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+  <!-- Leaflet & Supabase -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    /* ===== All base styles from original (unchanged) ===== */
+    :root {
+      --bg: #0a0d13;
+      --surface: #121826;
+      --surface-2: #19212f;
+      --surface-3: #212a3c;
+      --border: rgba(201, 168, 118, 0.14);
+      --border-soft: rgba(245, 243, 236, 0.06);
+      --sand: #c9a876;
+      --amber: #ff7a1a;
+      --amber-soft: rgba(255, 122, 26, 0.14);
+      --teal: #2dd4bf;
+      --teal-soft: rgba(45, 212, 191, 0.14);
+      --red: #f0453d;
+      --red-soft: rgba(240, 69, 61, 0.14);
+      --text: #f5f3ec;
+      --text-muted: #8d93a6;
+      --text-dim: #5b6274;
+      --r-lg: 18px;
+      --r-md: 12px;
+      --font-display: 'Space Grotesk', sans-serif;
+      --font-body: 'Inter', sans-serif;
+      --font-mono: 'IBM Plex Mono', monospace;
+      --font-ar: 'Tajawal', sans-serif;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; font-family: var(--font-body); }
+    [dir="rtl"] * { font-family: var(--font-ar); }
+    [dir="rtl"] .fa-chevron-right::before { content: "\f053"; }
+    body {
+      background: #000;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: calc(var(--vh, 1vh) * 100);
+      color: var(--text);
+      overflow: hidden;
+    }
+    .app-shell {
+      width: 100%;
+      max-width: 412px;
+      height: calc(var(--vh, 1vh) * 100);
+      max-height: 880px;
+      background: var(--bg);
+      border-radius: 34px;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 30px 70px rgba(0,0,0,0.85), 0 0 0 10px #0d1420;
+      background-image: radial-gradient(circle at 8% 0%, rgba(255,122,26,0.05), transparent 45%), radial-gradient(circle at 100% 30%, rgba(45,212,191,0.04), transparent 40%);
+    }
+    @media (min-width:769px) {
+      body { padding: 24px; overflow: auto; background: #050709; height: auto; min-height: calc(var(--vh, 1vh) * 100); }
+      .app-shell { max-width: 1200px; height: auto; max-height: 96vh; border-radius: 24px; box-shadow: 0 40px 100px rgba(0,0,0,0.7); }
+      .main-scroll { display: grid !important; grid-template-columns: repeat(3, 1fr); gap: 16px; padding: 22px !important; overflow-y: auto !important; align-content: start; }
+      .view { display: block !important; animation: none !important; margin-bottom: 0 !important; }
+      .nav-bar { display: none !important; }
+      #card-prayer { grid-column: span 1; }
+      #card-quickactions { grid-column: span 2; }
+      #card-announcement { grid-column: span 3; }
+      #card-about-overview { grid-column: span 1; }
+      #card-about-stats { grid-column: span 2; }
+      #card-about-history { grid-column: span 1; }
+      #card-about-companies { grid-column: span 2; }
+      #card-countdown { grid-column: span 1; }
+      #card-events { grid-column: span 2; }
+      #card-facility { grid-column: span 3; }
+      .reception-tag { display: inline-flex !important; }
+    }
+    .reception-tag { display: none; align-items: center; gap: 6px; background: var(--teal-soft); border: 1px solid rgba(45,212,191,0.35); color: var(--teal); padding: 5px 11px; border-radius: 20px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
 
-        /* ===== HEADER — new layout: Welcome Back top, location + weather + time below ===== */
-        .top-bar {
-            padding: 18px 18px 10px;
-            z-index: 10;
-            flex-shrink: 0;
-        }
-        .header-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 6px;
-        }
-        .header-row h1 {
-            font-family: var(--font-display);
-            font-size: 1.34rem;
-            font-weight: 700;
-            letter-spacing: -0.01em;
-        }
-        .header-actions {
-            display: flex;
-            gap: 8px;
-            align-items: center;
-        }
-        .icon-btn {
-            width: 38px;
-            height: 38px;
-            background: var(--surface-2);
-            border-radius: 11px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            border: 1px solid var(--border-soft);
-            color: var(--text);
-            cursor: pointer;
-        }
-        .lang-btn {
-            font-family: var(--font-mono);
-            font-weight: 600;
-            font-size: 0.68rem;
-            color: var(--sand);
-            width: auto;
-            padding: 0 10px;
-            border-color: var(--border);
-        }
+    /* Header */
+    .top-bar { padding: 18px 18px 10px; z-index: 10; flex-shrink: 0; }
+    .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .header-row h1 { font-family: var(--font-display); font-size: 1.34rem; font-weight: 700; letter-spacing: -0.01em; }
+    .header-actions { display: flex; gap: 8px; align-items: center; }
+    .icon-btn { width: 38px; height: 38px; background: var(--surface-2); border-radius: 11px; display: flex; align-items: center; justify-content: center; border: 1px solid var(--border-soft); color: var(--text); cursor: pointer; }
+    .lang-btn { font-family: var(--font-mono); font-weight: 600; font-size: 0.68rem; color: var(--sand); width: auto; padding: 0 10px; border-color: var(--border); background: var(--surface-2); border: 1px solid var(--border); border-radius: 11px; cursor: pointer; }
+    .lang-select { font-family: var(--font-mono); font-weight: 600; font-size: 0.68rem; color: var(--sand); background: var(--surface-2); border: 1px solid var(--border); border-radius: 11px; padding: 0 10px; height: 38px; cursor: pointer; color: var(--text); }
 
-        /* Location + weather + time row */
-        .location-weather-row {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 6px 12px;
-            margin-top: 2px;
-        }
-        .location-pill {
-            display: inline-flex;
-            align-items: center;
-            gap: 7px;
-            background: var(--surface-2);
-            border: 1px solid var(--border);
-            color: var(--sand);
-            padding: 6px 13px;
-            border-radius: 20px;
-            font-size: 0.72rem;
-            font-weight: 700;
-            letter-spacing: 0.02em;
-            cursor: pointer;
-            user-select: none;
-            transition: 0.15s;
-        }
-        .location-pill i {
-            color: var(--amber);
-            font-size: 0.75rem;
-        }
-        .location-pill:active {
-            transform: scale(0.96);
-            border-color: var(--amber);
-        }
-        [dir="rtl"] .location-pill {
-            flex-direction: row-reverse;
-        }
+    .location-weather-row { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px 12px; margin-top: 2px; }
+    .location-pill { display: inline-flex; align-items: center; gap: 7px; background: var(--surface-2); border: 1px solid var(--border); color: var(--sand); padding: 6px 13px; border-radius: 20px; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.02em; cursor: default; user-select: none; }
+    .location-pill i { color: var(--amber); font-size: 0.75rem; }
+    .mini-status { display: flex; align-items: center; gap: 9px; background: var(--surface-2); border: 1px solid var(--border-soft); border-radius: 20px; padding: 5px 12px; flex-shrink: 0; }
+    .mini-status-cell { display: flex; align-items: center; gap: 5px; }
+    .mini-status-cell i { font-size: 0.82rem; color: var(--amber); }
+    .mini-status-cell span { font-family: var(--font-mono); font-size: 0.78rem; font-weight: 600; color: var(--text); }
+    .mini-status-divider { width: 1px; height: 12px; background: var(--border); }
 
-        .mini-status {
-            display: flex;
-            align-items: center;
-            gap: 9px;
-            background: var(--surface-2);
-            border: 1px solid var(--border-soft);
-            border-radius: 20px;
-            padding: 5px 12px;
-            flex-shrink: 0;
-        }
-        .mini-status-cell {
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        .mini-status-cell i {
-            font-size: 0.82rem;
-            color: var(--amber);
-        }
-        .mini-status-cell span {
-            font-family: var(--font-mono);
-            font-size: 0.78rem;
-            font-weight: 600;
-            color: var(--text);
-        }
-        .mini-status-divider {
-            width: 1px;
-            height: 12px;
-            background: var(--border);
-        }
+    .main-scroll { flex: 1; overflow-y: auto; padding: 14px 18px 106px; scrollbar-width: none; }
+    .main-scroll::-webkit-scrollbar { display: none; }
+    .view { display: none; animation: rise 0.28s cubic-bezier(0.16,1,0.3,1); }
+    .view.active { display: block; }
+    @keyframes rise { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
 
-        .main-scroll {
-            flex: 1;
-            overflow-y: auto;
-            padding: 14px 18px 106px;
-            scrollbar-width: none;
-        }
-        .main-scroll::-webkit-scrollbar {
-            display: none;
-        }
-        .view {
-            display: none;
-            animation: rise 0.28s cubic-bezier(0.16, 1, 0.3, 1);
-        }
-        .view.active {
-            display: block;
-        }
-        @keyframes rise {
-            from {
-                opacity: 0;
-                transform: translateY(10px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
+    .section-label { display: flex; align-items: center; gap: 8px; margin: 18px 0 10px; font-family: var(--font-mono); font-size: 0.66rem; font-weight: 600; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.1em; }
+    .section-label::after { content: ""; flex: 1; height: 1px; background: var(--border-soft); }
+    .section-label:first-child { margin-top: 2px; }
 
-        .section-label {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            margin: 18px 0 10px;
-            font-family: var(--font-mono);
-            font-size: 0.66rem;
-            font-weight: 600;
-            color: var(--text-dim);
-            text-transform: uppercase;
-            letter-spacing: 0.1em;
-        }
-        .section-label::after {
-            content: "";
-            flex: 1;
-            height: 1px;
-            background: var(--border-soft);
-        }
-        .section-label:first-child {
-            margin-top: 2px;
-        }
+    .card { background: var(--surface); border: 1px solid var(--border-soft); border-radius: var(--r-lg); padding: 16px; margin-bottom: 12px; position: relative; height: 100%; }
+    .card::before { content: ""; position: absolute; top: 14px; bottom: 14px; left: 0; width: 3px; background: var(--plate, var(--amber)); border-radius: 0 3px 3px 0; }
+    [dir="rtl"] .card::before { left: auto; right: 0; border-radius: 3px 0 0 3px; }
+    .card-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 11px; }
+    .card-title { font-family: var(--font-display); font-size: 0.92rem; font-weight: 600; display: flex; align-items: center; gap: 8px; }
+    .card-title i { color: var(--amber); font-size: 0.85rem; }
+    .pill { font-family: var(--font-mono); font-size: 0.63rem; padding: 4px 9px; border-radius: 6px; font-weight: 600; letter-spacing: 0.02em; }
+    .pill-live { background: var(--teal-soft); color: var(--teal); }
+    .pill-amber { background: var(--amber-soft); color: var(--amber); }
 
-        .card {
-            background: var(--surface);
-            border: 1px solid var(--border-soft);
-            border-radius: var(--r-lg);
-            padding: 16px;
-            margin-bottom: 12px;
-            position: relative;
-            height: 100%;
-        }
-        .card::before {
-            content: "";
-            position: absolute;
-            top: 14px;
-            bottom: 14px;
-            left: 0;
-            width: 3px;
-            background: var(--plate, var(--amber));
-            border-radius: 0 3px 3px 0;
-        }
-        [dir="rtl"] .card::before {
-            left: auto;
-            right: 0;
-            border-radius: 3px 0 0 3px;
-        }
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 11px;
-        }
-        .card-title {
-            font-family: var(--font-display);
-            font-size: 0.92rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .card-title i {
-            color: var(--amber);
-            font-size: 0.85rem;
-        }
-        .pill {
-            font-family: var(--font-mono);
-            font-size: 0.63rem;
-            padding: 4px 9px;
-            border-radius: 6px;
-            font-weight: 600;
-            letter-spacing: 0.02em;
-        }
-        .pill-live {
-            background: var(--teal-soft);
-            color: var(--teal);
-        }
-        .pill-amber {
-            background: var(--amber-soft);
-            color: var(--amber);
-        }
+    .card-prayer { --plate: var(--sand); }
+    .prayer-grid { display: grid; grid-template-columns: repeat(5, 1fr); gap: 4px; margin-top: 10px; }
+    .prayer-cell { text-align: center; padding: 7px 2px; border-radius: 8px; background: var(--surface-3); display: flex; flex-direction: column; align-items: center; min-height: 62px; }
+    .prayer-cell.next { background: var(--amber-soft); border: 1px solid rgba(255,122,26,0.4); }
+    .prayer-name { font-size: 0.58rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.04em; font-weight: 600; }
+    .prayer-cell.next .prayer-name { color: var(--amber); }
+    .prayer-time { font-family: var(--font-mono); font-size: 0.72rem; font-weight: 600; margin-top: 2px; }
+    .prayer-iqama { font-family: var(--font-mono); font-size: 0.58rem; font-weight: 500; color: var(--text-dim); margin-top: 1px; border-top: 1px dotted var(--border-soft); padding-top: 2px; width: 80%; }
+    .prayer-cell.next .prayer-iqama { color: var(--text-muted); border-top-color: rgba(255,122,26,0.25); }
 
-        /* Prayer grid — shows adhan + computed iqama */
-        .card-prayer {
-            --plate: var(--sand);
-        }
-        .prayer-grid {
-            display: grid;
-            grid-template-columns: repeat(5, 1fr);
-            gap: 4px;
-            margin-top: 10px;
-        }
-        .prayer-cell {
-            text-align: center;
-            padding: 7px 2px;
-            border-radius: 8px;
-            background: var(--surface-3);
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 62px;
-        }
-        .prayer-cell.next {
-            background: var(--amber-soft);
-            border: 1px solid rgba(255, 122, 26, 0.4);
-        }
-        .prayer-name {
-            font-size: 0.58rem;
-            color: var(--text-dim);
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            font-weight: 600;
-        }
-        .prayer-cell.next .prayer-name {
-            color: var(--amber);
-        }
-        .prayer-time {
-            font-family: var(--font-mono);
-            font-size: 0.72rem;
-            font-weight: 600;
-            margin-top: 2px;
-        }
-        .prayer-iqama {
-            font-family: var(--font-mono);
-            font-size: 0.58rem;
-            font-weight: 500;
-            color: var(--text-dim);
-            margin-top: 1px;
-            border-top: 1px dotted var(--border-soft);
-            padding-top: 2px;
-            width: 80%;
-        }
-        .prayer-cell.next .prayer-iqama {
-            color: var(--text-muted);
-            border-top-color: rgba(255, 122, 26, 0.25);
-        }
+    .qa-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .qa-btn { display: flex; flex-direction: column; align-items: center; gap: 6px; background: var(--surface-3); border: 1px solid var(--border-soft); border-radius: var(--r-md); padding: 14px 4px; cursor: pointer; text-align: center; }
+    .qa-btn i { font-size: 1.1rem; color: var(--amber); }
+    .qa-btn span { font-size: 0.64rem; color: var(--text-muted); font-weight: 600; line-height: 1.2; }
 
-        .qa-grid {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 8px;
-        }
-        .qa-btn {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 6px;
-            background: var(--surface-3);
-            border: 1px solid var(--border-soft);
-            border-radius: var(--r-md);
-            padding: 14px 4px;
-            cursor: pointer;
-            text-align: center;
-        }
-        .qa-btn i {
-            font-size: 1.1rem;
-            color: var(--amber);
-        }
-        .qa-btn span {
-            font-size: 0.64rem;
-            color: var(--text-muted);
-            font-weight: 600;
-            line-height: 1.2;
-        }
+    .card-announce { --plate: var(--teal); }
+    .announcement-item { padding: 10px 0; border-bottom: 1px solid var(--border-soft); }
+    .announcement-item:last-child { border-bottom: none; }
+    .announcement-item h4 { font-family: var(--font-display); font-size: 0.87rem; font-weight: 600; }
+    .announcement-item p { font-size: 0.78rem; color: var(--text-muted); margin-top: 4px; line-height: 1.45; }
+    .announcement-meta { font-size: 0.68rem; display: flex; gap: 12px; color: var(--text-dim); margin-top: 6px; font-family: var(--font-mono); }
+    .expand-btn { display: flex; align-items: center; justify-content: center; gap: 6px; width: 100%; background: none; border: none; color: var(--teal); font-size: 0.75rem; font-weight: 600; font-family: var(--font-mono); padding: 10px 0 2px; cursor: pointer; }
+    .hidden-announcements { display: none; }
+    .hidden-announcements.expanded { display: block; }
 
-        .card-announce {
-            --plate: var(--teal);
-        }
-        .announcement-item {
-            padding: 10px 0;
-            border-bottom: 1px solid var(--border-soft);
-        }
-        .announcement-item:last-child {
-            border-bottom: none;
-        }
-        .announcement-item h4 {
-            font-family: var(--font-display);
-            font-size: 0.87rem;
-            font-weight: 600;
-        }
-        .announcement-item p {
-            font-size: 0.78rem;
-            color: var(--text-muted);
-            margin-top: 4px;
-            line-height: 1.45;
-        }
-        .announcement-meta {
-            font-size: 0.68rem;
-            display: flex;
-            gap: 12px;
-            color: var(--text-dim);
-            margin-top: 6px;
-            font-family: var(--font-mono);
-        }
-        .expand-btn {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 6px;
-            width: 100%;
-            background: none;
-            border: none;
-            color: var(--teal);
-            font-size: 0.75rem;
-            font-weight: 600;
-            font-family: var(--font-mono);
-            padding: 10px 0 2px;
-            cursor: pointer;
-        }
-        .hidden-announcements {
-            display: none;
-        }
-        .hidden-announcements.expanded {
-            display: block;
-        }
+    .card-about-overview { --plate: var(--amber); }
+    .stat-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; margin-top: 10px; }
+    .stat-tile { background: var(--surface-3); border: 1px solid var(--border-soft); border-radius: var(--r-md); padding: 12px 10px; }
+    .stat-val { font-family: var(--font-mono); font-size: 1.15rem; font-weight: 700; color: var(--amber); }
+    .stat-lbl { font-size: 0.64rem; color: var(--text-muted); margin-top: 3px; font-weight: 600; }
+    .history-item { display: flex; gap: 10px; margin-bottom: 12px; }
+    .history-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--sand); margin-top: 6px; flex-shrink: 0; }
+    .history-item p { font-size: 0.79rem; color: var(--text-muted); line-height: 1.5; }
+    .history-item strong { color: var(--text); font-family: var(--font-display); font-weight: 600; font-size: 0.83rem; display: block; margin-bottom: 2px; }
+    .company-chip { display: inline-flex; align-items: center; gap: 6px; background: var(--surface-3); border: 1px solid var(--border-soft); padding: 7px 12px; border-radius: 9px; font-size: 0.75rem; color: var(--text-muted); margin: 0 6px 6px 0; }
+    .company-chip i { color: var(--teal); font-size: 0.7rem; }
 
-        .card-about-overview {
-            --plate: var(--amber);
-        }
-        .stat-grid {
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 8px;
-            margin-top: 10px;
-        }
-        .stat-tile {
-            background: var(--surface-3);
-            border: 1px solid var(--border-soft);
-            border-radius: var(--r-md);
-            padding: 12px 10px;
-        }
-        .stat-val {
-            font-family: var(--font-mono);
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: var(--amber);
-        }
-        .stat-lbl {
-            font-size: 0.64rem;
-            color: var(--text-muted);
-            margin-top: 3px;
-            font-weight: 600;
-        }
-        .history-item {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 12px;
-        }
-        .history-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: var(--sand);
-            margin-top: 6px;
-            flex-shrink: 0;
-        }
-        .history-item p {
-            font-size: 0.79rem;
-            color: var(--text-muted);
-            line-height: 1.5;
-        }
-        .history-item strong {
-            color: var(--text);
-            font-family: var(--font-display);
-            font-weight: 600;
-            font-size: 0.83rem;
-            display: block;
-            margin-bottom: 2px;
-        }
-        .company-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            background: var(--surface-3);
-            border: 1px solid var(--border-soft);
-            padding: 7px 12px;
-            border-radius: 9px;
-            font-size: 0.75rem;
-            color: var(--text-muted);
-            margin: 0 6px 6px 0;
-        }
-        .company-chip i {
-            color: var(--teal);
-            font-size: 0.7rem;
-        }
+    .card-countdown { --plate: var(--amber); background: linear-gradient(155deg, var(--amber-soft) 0%, var(--surface) 60%); }
+    .cd-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 7px; margin-top: 12px; text-align: center; }
+    .cd-box { background: rgba(10,13,19,0.55); border: 1px solid var(--border); border-radius: 9px; padding: 8px 3px; }
+    .cd-val { font-family: var(--font-mono); font-size: 1.15rem; font-weight: 700; color: var(--amber); }
+    .cd-lbl { font-size: 0.56rem; color: var(--text-dim); text-transform: uppercase; margin-top: 2px; font-weight: 600; letter-spacing: 0.05em; }
 
-        .card-countdown {
-            --plate: var(--amber);
-            background: linear-gradient(155deg, var(--amber-soft) 0%, var(--surface) 60%);
-        }
-        .cd-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 7px;
-            margin-top: 12px;
-            text-align: center;
-        }
-        .cd-box {
-            background: rgba(10, 13, 19, 0.55);
-            border: 1px solid var(--border);
-            border-radius: 9px;
-            padding: 8px 3px;
-        }
-        .cd-val {
-            font-family: var(--font-mono);
-            font-size: 1.15rem;
-            font-weight: 700;
-            color: var(--amber);
-        }
-        .cd-lbl {
-            font-size: 0.56rem;
-            color: var(--text-dim);
-            text-transform: uppercase;
-            margin-top: 2px;
-            font-weight: 600;
-            letter-spacing: 0.05em;
-        }
+    .filter-row { display: flex; gap: 6px; margin-bottom: 12px; overflow-x: auto; padding-bottom: 2px; }
+    .filter-chip { font-size: 0.68rem; font-weight: 600; padding: 6px 12px; border-radius: 20px; background: var(--surface-3); color: var(--text-muted); border: 1px solid var(--border-soft); white-space: nowrap; cursor: pointer; }
+    .filter-chip.active { background: var(--amber); color: #1a0d02; border-color: var(--amber); }
+    .event-row { background: var(--surface-2); padding: 11px 12px; border-radius: 11px; margin-bottom: 8px; border: 1px solid var(--border-soft); display: flex; gap: 11px; align-items: center; }
+    .event-icon { width: 36px; height: 36px; border-radius: 9px; background: var(--surface-3); display: flex; align-items: center; justify-content: center; color: var(--amber); flex-shrink: 0; }
+    .event-body { flex: 1; min-width: 0; }
+    .event-body h4 { font-size: 0.83rem; font-weight: 600; font-family: var(--font-display); }
+    .event-body .meta { font-size: 0.7rem; color: var(--text-muted); display: flex; gap: 10px; margin-top: 3px; flex-wrap: wrap; }
+    .live-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--teal); display: inline-block; margin-right: 4px; box-shadow: 0 0 8px var(--teal); }
 
-        .filter-row {
-            display: flex;
-            gap: 6px;
-            margin-bottom: 12px;
-            overflow-x: auto;
-            padding-bottom: 2px;
-        }
-        .filter-chip {
-            font-size: 0.68rem;
-            font-weight: 600;
-            padding: 6px 12px;
-            border-radius: 20px;
-            background: var(--surface-3);
-            color: var(--text-muted);
-            border: 1px solid var(--border-soft);
-            white-space: nowrap;
-            cursor: pointer;
-        }
-        .filter-chip.active {
-            background: var(--amber);
-            color: #1a0d02;
-            border-color: var(--amber);
-        }
-        .event-row {
-            background: var(--surface-2);
-            padding: 11px 12px;
-            border-radius: 11px;
-            margin-bottom: 8px;
-            border: 1px solid var(--border-soft);
-            display: flex;
-            gap: 11px;
-            align-items: center;
-        }
-        .event-icon {
-            width: 36px;
-            height: 36px;
-            border-radius: 9px;
-            background: var(--surface-3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--amber);
-            flex-shrink: 0;
-        }
-        .event-body {
-            flex: 1;
-            min-width: 0;
-        }
-        .event-body h4 {
-            font-size: 0.83rem;
-            font-weight: 600;
-            font-family: var(--font-display);
-        }
-        .event-body .meta {
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            display: flex;
-            gap: 10px;
-            margin-top: 3px;
-            flex-wrap: wrap;
-        }
-        .live-dot {
-            width: 7px;
-            height: 7px;
-            border-radius: 50%;
-            background: var(--teal);
-            display: inline-block;
-            margin-right: 4px;
-            box-shadow: 0 0 8px var(--teal);
-        }
+    .card-facility { --plate: var(--teal); }
+    .map-box { width: 100%; height: 220px; background: var(--surface-2); border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--border-soft); }
+    #leaflet-map { width: 100%; height: 100%; }
+    .leaflet-div-icon { background: none; border: none; }
+    .geo-pin { width: 28px; height: 28px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.5); border: 2px solid rgba(10,13,19,0.5); }
+    .geo-pin i { transform: rotate(45deg); color: #0a0d13; font-size: 0.75rem; }
+    .leaflet-popup-content-wrapper { background: var(--surface-2); color: var(--text); border-radius: 10px; }
+    .leaflet-popup-tip { background: var(--surface-2); }
+    .leaflet-popup-content { font-family: var(--font-body); font-size: 0.78rem; }
+    .leaflet-popup-content strong { font-family: var(--font-display); }
+    .leaflet-control-attribution { background: rgba(10,13,19,0.7) !important; color: var(--text-dim) !important; font-size: 0.55rem !important; }
+    .leaflet-control-attribution a { color: var(--sand) !important; }
+    .map-info-box { margin-top: 10px; padding: 11px; background: var(--surface-2); border-radius: 10px; font-size: 0.76rem; color: var(--text-muted); border: 1px solid var(--border-soft); line-height: 1.5; }
+    .map-info-box strong { color: var(--text); font-family: var(--font-display); }
+    .facility-list-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--surface-2); border-radius: 10px; border: 1px solid var(--border-soft); margin-top: 8px; cursor: pointer; }
+    .facility-list-row .fl-name { font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 9px; }
+    .facility-list-row .fl-name i { color: var(--amber); width: 16px; }
+    .facility-list-row .fl-time { font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-muted); }
 
-        .card-facility {
-            --plate: var(--teal);
-        }
-        .map-box {
-            width: 100%;
-            height: 220px;
-            background: var(--surface-2);
-            border-radius: var(--r-md);
-            overflow: hidden;
-            border: 1px solid var(--border-soft);
-        }
-        #leaflet-map {
-            width: 100%;
-            height: 100%;
-        }
-        .leaflet-div-icon {
-            background: none;
-            border: none;
-        }
-        .geo-pin {
-            width: 28px;
-            height: 28px;
-            border-radius: 50% 50% 50% 0;
-            transform: rotate(-45deg);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
-            border: 2px solid rgba(10, 13, 19, 0.5);
-        }
-        .geo-pin i {
-            transform: rotate(45deg);
-            color: #0a0d13;
-            font-size: 0.75rem;
-        }
-        .leaflet-popup-content-wrapper {
-            background: var(--surface-2);
-            color: var(--text);
-            border-radius: 10px;
-        }
-        .leaflet-popup-tip {
-            background: var(--surface-2);
-        }
-        .leaflet-popup-content {
-            font-family: var(--font-body);
-            font-size: 0.78rem;
-        }
-        .leaflet-popup-content strong {
-            font-family: var(--font-display);
-        }
-        .leaflet-control-attribution {
-            background: rgba(10, 13, 19, 0.7) !important;
-            color: var(--text-dim) !important;
-            font-size: 0.55rem !important;
-        }
-        .leaflet-control-attribution a {
-            color: var(--sand) !important;
-        }
-        .map-info-box {
-            margin-top: 10px;
-            padding: 11px;
-            background: var(--surface-2);
-            border-radius: 10px;
-            font-size: 0.76rem;
-            color: var(--text-muted);
-            border: 1px solid var(--border-soft);
-            line-height: 1.5;
-        }
-        .map-info-box strong {
-            color: var(--text);
-            font-family: var(--font-display);
-        }
-        .facility-list-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 12px;
-            background: var(--surface-2);
-            border-radius: 10px;
-            border: 1px solid var(--border-soft);
-            margin-top: 8px;
-            cursor: pointer;
-        }
-        .facility-list-row .fl-name {
-            font-size: 0.8rem;
-            font-weight: 600;
-            display: flex;
-            align-items: center;
-            gap: 9px;
-        }
-        .facility-list-row .fl-name i {
-            color: var(--amber);
-            width: 16px;
-        }
-        .facility-list-row .fl-time {
-            font-family: var(--font-mono);
-            font-size: 0.68rem;
-            color: var(--text-muted);
-        }
+    .day-tabs { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 12px; padding-bottom: 2px; }
+    .day-tab { font-size: 0.68rem; font-weight: 700; font-family: var(--font-mono); padding: 7px 11px; border-radius: 9px; background: var(--surface-3); color: var(--text-muted); border: 1px solid var(--border-soft); cursor: pointer; white-space: nowrap; }
+    .day-tab.active { background: var(--amber); color: #1a0d02; border-color: var(--amber); }
+    .meal-block { margin-bottom: 12px; }
+    .meal-block h5 { font-size: 0.72rem; color: var(--sand); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 700; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+    .meal-time { font-family: var(--font-mono); color: var(--text-dim); font-weight: 500; }
+    .food-row { display: flex; gap: 8px; flex-wrap: wrap; }
+    .food-chip { font-size: 0.72rem; background: var(--surface-3); border: 1px solid var(--border-soft); padding: 5px 10px; border-radius: 7px; color: var(--text-muted); }
 
-        .day-tabs {
-            display: flex;
-            gap: 6px;
-            overflow-x: auto;
-            margin-bottom: 12px;
-            padding-bottom: 2px;
-        }
-        .day-tab {
-            font-size: 0.68rem;
-            font-weight: 700;
-            font-family: var(--font-mono);
-            padding: 7px 11px;
-            border-radius: 9px;
-            background: var(--surface-3);
-            color: var(--text-muted);
-            border: 1px solid var(--border-soft);
-            cursor: pointer;
-            white-space: nowrap;
-        }
-        .day-tab.active {
-            background: var(--amber);
-            color: #1a0d02;
-            border-color: var(--amber);
-        }
-        .meal-block {
-            margin-bottom: 12px;
-        }
-        .meal-block h5 {
-            font-size: 0.72rem;
-            color: var(--sand);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            font-weight: 700;
-            margin-bottom: 6px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .meal-time {
-            font-family: var(--font-mono);
-            color: var(--text-dim);
-            font-weight: 500;
-        }
-        .food-row {
-            display: flex;
-            gap: 8px;
-            flex-wrap: wrap;
-        }
-        .food-chip {
-            font-size: 0.72rem;
-            background: var(--surface-3);
-            border: 1px solid var(--border-soft);
-            padding: 5px 10px;
-            border-radius: 7px;
-            color: var(--text-muted);
-        }
+    .transport-row { background: var(--surface-2); padding: 11px 12px; border-radius: 11px; margin-bottom: 8px; border: 1px solid var(--border-soft); }
+    .transport-row .t-top { display: flex; justify-content: space-between; align-items: center; }
+    .transport-row h4 { font-size: 0.82rem; font-weight: 600; font-family: var(--font-display); }
+    .transport-row p { font-size: 0.72rem; color: var(--text-muted); margin-top: 3px; }
 
-        .transport-row {
-            background: var(--surface-2);
-            padding: 11px 12px;
-            border-radius: 11px;
-            margin-bottom: 8px;
-            border: 1px solid var(--border-soft);
-        }
-        .transport-row .t-top {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .transport-row h4 {
-            font-size: 0.82rem;
-            font-weight: 600;
-            font-family: var(--font-display);
-        }
-        .transport-row p {
-            font-size: 0.72rem;
-            color: var(--text-muted);
-            margin-top: 3px;
-        }
+    .numbers-group { margin-bottom: 14px; }
+    .numbers-group h5 { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 700; margin-bottom: 8px; }
+    .contact-card { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--surface-2); border-radius: var(--r-md); border: 1px solid var(--border-soft); margin-bottom: 8px; }
+    .contact-info { display: flex; align-items: center; gap: 10px; }
+    .contact-icon { width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; }
+    .contact-info h4 { font-size: 0.8rem; font-weight: 600; }
+    .contact-info p { font-size: 0.68rem; color: var(--text-muted); margin-top: 1px; }
+    .call-btn { background: var(--amber); color: #1a0d02; border: none; width: 34px; height: 34px; border-radius: 9px; display: flex; align-items: center; justify-content: center; text-decoration: none; }
+    .call-btn-danger { background: var(--red); color: #fff; }
 
-        .numbers-group {
-            margin-bottom: 14px;
-        }
-        .numbers-group h5 {
-            font-size: 0.7rem;
-            color: var(--text-dim);
-            text-transform: uppercase;
-            letter-spacing: 0.06em;
-            font-weight: 700;
-            margin-bottom: 8px;
-        }
-        .contact-card {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            padding: 10px 12px;
-            background: var(--surface-2);
-            border-radius: var(--r-md);
-            border: 1px solid var(--border-soft);
-            margin-bottom: 8px;
-        }
-        .contact-info {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-        .contact-icon {
-            width: 34px;
-            height: 34px;
-            border-radius: 9px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 0.9rem;
-        }
-        .contact-info h4 {
-            font-size: 0.8rem;
-            font-weight: 600;
-        }
-        .contact-info p {
-            font-size: 0.68rem;
-            color: var(--text-muted);
-            margin-top: 1px;
-        }
-        .call-btn {
-            background: var(--amber);
-            color: #1a0d02;
-            border: none;
-            width: 34px;
-            height: 34px;
-            border-radius: 9px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            text-decoration: none;
-        }
-        .call-btn-danger {
-            background: var(--red);
-            color: #fff;
-        }
+    .toast-notification {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      right: 16px;
+      background: var(--surface-2);
+      border: 1px solid var(--amber);
+      border-left: 4px solid var(--amber);
+      border-radius: var(--r-md);
+      padding: 12px 14px;
+      z-index: 999;
+      box-shadow: 0 14px 30px rgba(0,0,0,0.55);
+      display: none;
+    }
+    [dir="rtl"] .toast-notification { border-left: 1px solid var(--amber); border-right: 4px solid var(--amber); }
+    .toast-notification h4 { font-family: var(--font-display); font-size: 0.85rem; }
+    .toast-notification p { font-size: 0.72rem; color: var(--text-muted); margin-top: 1px; }
 
-        .form-control {
-            width: 100%;
-            padding: 11px 13px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--r-md);
-            color: var(--text);
-            font-size: 0.83rem;
-            margin-bottom: 10px;
-            outline: none;
-            font-family: var(--font-body);
-        }
-        .form-control:focus {
-            border-color: var(--amber);
-        }
-        label {
-            display: block;
-            font-size: 0.7rem;
-            color: var(--text-muted);
-            margin-bottom: 4px;
-            font-weight: 600;
-            font-family: var(--font-mono);
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-        }
-        .btn-primary {
-            width: 100%;
-            padding: 13px;
-            background: var(--amber);
-            border: none;
-            border-radius: var(--r-md);
-            color: #1a0d02;
-            font-weight: 700;
-            font-size: 0.84rem;
-            cursor: pointer;
-            font-family: var(--font-display);
-        }
-        .btn-secondary {
-            width: 100%;
-            padding: 11px;
-            background: var(--surface-3);
-            border: 1px solid var(--border);
-            border-radius: var(--r-md);
-            color: var(--text);
-            font-weight: 600;
-            font-size: 0.78rem;
-            cursor: pointer;
-            font-family: var(--font-mono);
-            margin-bottom: 10px;
-        }
-        .toggle-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: var(--surface-2);
-            padding: 10px 13px;
-            border-radius: var(--r-md);
-            margin-bottom: 10px;
-        }
-        .toggle-row span {
-            font-size: 0.78rem;
-            font-weight: 600;
-        }
-        .switch {
-            position: relative;
-            width: 38px;
-            height: 22px;
-            flex-shrink: 0;
-        }
-        .switch input {
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        .switch-track {
-            position: absolute;
-            inset: 0;
-            background: var(--surface-3);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            cursor: pointer;
-            transition: 0.2s;
-        }
-        .switch-track::before {
-            content: "";
-            position: absolute;
-            width: 16px;
-            height: 16px;
-            left: 2px;
-            top: 2px;
-            background: var(--text-dim);
-            border-radius: 50%;
-            transition: 0.2s;
-        }
-        .switch input:checked+.switch-track {
-            background: var(--amber-soft);
-            border-color: var(--amber);
-        }
-        .switch input:checked+.switch-track::before {
-            transform: translateX(16px);
-            background: var(--amber);
-        }
-        .note-text {
-            font-size: 0.68rem;
-            color: var(--text-dim);
-            line-height: 1.5;
-            margin: -4px 0 10px;
-        }
+    .modal-overlay {
+      position: absolute;
+      inset: 0;
+      background: rgba(4,6,10,0.88);
+      backdrop-filter: blur(9px);
+      z-index: 100;
+      display: none;
+      align-items: flex-end;
+      justify-content: center;
+    }
+    .modal-card { width: 100%; max-height: 88%; background: var(--bg); border-top-left-radius: 26px; border-top-right-radius: 26px; border-top: 1px solid var(--border); padding: 20px; overflow-y: auto; }
+    .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; padding-bottom: 12px; border-bottom: 1px solid var(--border-soft); }
+    .modal-header h2 { font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; display: flex; align-items: center; gap: 8px; }
 
-        .toast-notification {
-            position: absolute;
-            top: 16px;
-            left: 16px;
-            right: 16px;
-            background: var(--surface-2);
-            border: 1px solid var(--amber);
-            border-left: 4px solid var(--amber);
-            border-radius: var(--r-md);
-            padding: 12px 14px;
-            z-index: 999;
-            box-shadow: 0 14px 30px rgba(0, 0, 0, 0.55);
-            display: none;
-        }
-        [dir="rtl"] .toast-notification {
-            border-left: 1px solid var(--amber);
-            border-right: 4px solid var(--amber);
-        }
-        .toast-notification h4 {
-            font-family: var(--font-display);
-            font-size: 0.85rem;
-        }
-        .toast-notification p {
-            font-size: 0.72rem;
-            color: var(--text-muted);
-            margin-top: 1px;
-        }
+    .nav-bar {
+      position: absolute;
+      bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+      left: 12px;
+      right: 12px;
+      background: rgba(18,24,38,0.92);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border);
+      border-radius: 22px;
+      display: flex;
+      justify-content: space-around;
+      padding: 9px 0;
+      box-shadow: 0 14px 34px rgba(0,0,0,0.75);
+      z-index: 50;
+      transition: transform 0.3s cubic-bezier(0.16,1,0.3,1), opacity 0.3s ease;
+    }
+    .nav-bar.nav-hidden { transform: translateY(100px); opacity: 0; pointer-events: none; }
+    .nav-bar.nav-visible { transform: translateY(0); opacity: 1; pointer-events: auto; }
+    .nav-btn { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-dim); font-size: 0.6rem; font-weight: 600; cursor: pointer; flex: 1; position: relative; padding-top: 3px; }
+    .nav-btn i { font-size: 1.05rem; }
+    .nav-btn.active { color: var(--amber); }
+    .nav-btn.active::before { content: ""; position: absolute; top: -9px; left: 50%; transform: translateX(-50%); width: 16px; height: 2px; background: var(--amber); border-radius: 2px; }
 
-        .modal-overlay {
-            position: absolute;
-            inset: 0;
-            background: rgba(4, 6, 10, 0.88);
-            backdrop-filter: blur(9px);
-            z-index: 100;
-            display: none;
-            align-items: flex-end;
-            justify-content: center;
-        }
-        .modal-card {
-            width: 100%;
-            max-height: 88%;
-            background: var(--bg);
-            border-top-left-radius: 26px;
-            border-top-right-radius: 26px;
-            border-top: 1px solid var(--border);
-            padding: 20px;
-            overflow-y: auto;
-        }
-        .modal-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 16px;
-            padding-bottom: 12px;
-            border-bottom: 1px solid var(--border-soft);
-        }
-        .modal-header h2 {
-            font-family: var(--font-display);
-            font-size: 1.05rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .admin-nav {
-            display: flex;
-            background: rgba(0, 0, 0, 0.35);
-            padding: 4px;
-            border-radius: 12px;
-            margin-bottom: 16px;
-            gap: 4px;
-            overflow-x: auto;
-        }
-        .admin-tab {
-            flex: 1;
-            text-align: center;
-            padding: 8px 6px;
-            font-size: 0.62rem;
-            font-weight: 700;
-            border-radius: 8px;
-            color: var(--text-muted);
-            cursor: pointer;
-            white-space: nowrap;
-            font-family: var(--font-mono);
-        }
-        .admin-tab.active {
-            background: var(--amber);
-            color: #1a0d02;
-        }
-        .admin-block {
-            background: var(--surface-2);
-            padding: 10px;
-            border-radius: 10px;
-            margin-bottom: 8px;
-            border: 1px solid var(--border-soft);
-        }
-        .icon-dropdown {
-            margin-bottom: 10px;
-        }
-        .icon-dropdown-toggle {
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 11px 13px;
-            background: var(--surface);
-            border: 1px solid var(--border);
-            border-radius: var(--r-md);
-            color: var(--text);
-            font-size: 0.83rem;
-            cursor: pointer;
-            font-family: var(--font-body);
-        }
-        .icon-dropdown-toggle span {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-        .icon-dropdown-toggle i.fa-chevron-down {
-            font-size: 0.7rem;
-            color: var(--text-dim);
-            transition: transform 0.15s;
-        }
-        .icon-picker {
-            display: none;
-            grid-template-columns: repeat(6, 1fr);
-            gap: 6px;
-            margin-top: 8px;
-            padding: 8px;
-            background: var(--surface-3);
-            border-radius: 10px;
-            border: 1px solid var(--border-soft);
-        }
-        .icon-picker.open {
-            display: grid;
-        }
-        .icon-picker-btn {
-            aspect-ratio: 1;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: var(--surface-2);
-            border: 1px solid var(--border-soft);
-            border-radius: 9px;
-            color: var(--text-muted);
-            font-size: 0.95rem;
-            cursor: pointer;
-        }
-        .icon-picker-btn.selected {
-            background: var(--amber-soft);
-            border-color: var(--amber);
-            color: var(--amber);
-        }
-        .facility-color-dot {
-            display: inline-block;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            margin-right: 6px;
-            vertical-align: middle;
-        }
-        #picker-map {
-            width: 100%;
-            height: 100%;
-        }
-
-        .nav-bar {
-            position: absolute;
-            bottom: calc(18px + env(safe-area-inset-bottom, 0px));
-            left: 12px;
-            right: 12px;
-            background: rgba(18, 24, 38, 0.92);
-            backdrop-filter: blur(20px);
-            border: 1px solid var(--border);
-            border-radius: 22px;
-            display: flex;
-            justify-content: space-around;
-            padding: 9px 0;
-            box-shadow: 0 14px 34px rgba(0, 0, 0, 0.75);
-            z-index: 50;
-            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.3s ease;
-        }
-        .nav-bar.nav-hidden {
-            transform: translateY(100px);
-            opacity: 0;
-            pointer-events: none;
-        }
-        .nav-bar.nav-visible {
-            transform: translateY(0);
-            opacity: 1;
-            pointer-events: auto;
-        }
-        .nav-btn {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 4px;
-            color: var(--text-dim);
-            font-size: 0.6rem;
-            font-weight: 600;
-            cursor: pointer;
-            flex: 1;
-            position: relative;
-            padding-top: 3px;
-        }
-        .nav-btn i {
-            font-size: 1.05rem;
-        }
-        .nav-btn.active {
-            color: var(--amber);
-        }
-        .nav-btn.active::before {
-            content: "";
-            position: absolute;
-            top: -9px;
-            left: 50%;
-            transform: translateX(-50%);
-            width: 16px;
-            height: 2px;
-            background: var(--amber);
-            border-radius: 2px;
-        }
-
-        /* Admin prayer fields */
-        .prayer-admin-group {
-            background: var(--surface-3);
-            border-radius: var(--r-md);
-            padding: 10px 12px;
-            margin-bottom: 8px;
-            border: 1px solid var(--border-soft);
-        }
-        .prayer-admin-group .prayer-label {
-            font-weight: 600;
-            font-size: 0.78rem;
-            color: var(--text);
-            margin-bottom: 4px;
-            display: block;
-        }
-        .prayer-admin-group .prayer-label small {
-            color: var(--text-dim);
-            font-weight: 400;
-            font-size: 0.68rem;
-            font-family: var(--font-mono);
-        }
-        .admin-time-row {
-            display: flex;
-            gap: 8px;
-            align-items: flex-end;
-        }
-        .admin-time-row .form-control {
-            margin-bottom: 0;
-        }
-        .admin-time-wrap {
-            flex: 1;
-        }
-        .admin-time-label {
-            font-size: 0.6rem;
-            color: var(--text-dim);
-            font-weight: 600;
-            font-family: var(--font-mono);
-            text-transform: uppercase;
-            letter-spacing: 0.04em;
-            display: block;
-            margin-bottom: 2px;
-        }
-        .admin-time-wrap .form-control {
-            margin-bottom: 0;
-        }
-        .admin-offset-input {
-            max-width: 80px;
-            flex: 0 0 auto;
-        }
-        .admin-offset-input .form-control {
-            text-align: center;
-        }
-
-        /* Login modal */
-        #login-modal .modal-card {
-            max-width: 360px;
-            margin: 0 auto;
-        }
-        .login-status {
-            text-align: center;
-            font-size: 0.78rem;
-            color: var(--text-muted);
-            margin-top: 8px;
-        }
-        .logout-btn {
-            background: var(--red-soft);
-            color: var(--red);
-            border: 1px solid var(--red);
-            padding: 6px 12px;
-            border-radius: 8px;
-            font-size: 0.68rem;
-            font-weight: 600;
-            cursor: pointer;
-        }
-        .logout-btn:hover {
-            background: var(--red);
-            color: #fff;
-        }
-    </style>
+    /* Responsive tweaks */
+    @media (max-width: 412px) {
+      .app-shell { border-radius: 0; max-height: none; box-shadow: none; border: none; }
+    }
+  </style>
 </head>
-
 <body>
-  <div class="app-shell">
-    <!-- TOAST -->
-    <div id="toast" class="toast-notification">
-      <div style="display:flex;align-items:center;gap:10px;">
-        <i class="fa-solid fa-tower-broadcast" style="color:var(--amber);font-size:1.15rem;"></i>
-        <div><h4 id="toast-title">Camp Broadcast</h4><p id="toast-body">Notification message here...</p></div>
-      </div>
-    </div>
+<div class="app-shell">
 
-    <!-- HEADER (same as before, but lang button becomes dropdown) -->
-    <div class="top-bar">
-      <div class="header-row">
-        <h1 data-i18n="homeTitle">Welcome Back</h1>
-        <div class="header-actions">
-          <div class="reception-tag"><i class="fa-solid fa-desktop"></i> Reception Mode</div>
-          <select id="lang-selector" class="icon-btn lang-btn" style="width:auto;padding:0 10px;background:var(--surface-2);border:1px solid var(--border);border-radius:11px;color:var(--text);font-size:0.68rem;font-family:var(--font-mono);cursor:pointer;"></select>
-          <div class="icon-btn" onclick="triggerToast('Notifications','No unread system alerts.')"><i class="fa-regular fa-bell"></i></div>
-        </div>
-      </div>
-      <div class="location-weather-row">
-        <div class="location-pill" id="location-pill-btn">
-          <i class="fa-solid fa-location-dot"></i>
-          <span id="header-location-name">Lekhwair Camp</span>
-        </div>
-        <div class="mini-status">
-          <div class="mini-status-cell"><i class="fa-solid fa-sun" id="weather-icon"></i><span id="strip-temp">--°C</span></div>
-          <div class="mini-status-divider"></div>
-          <div class="mini-status-cell"><i class="fa-regular fa-clock"></i><span id="strip-time">--:--</span></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- MAIN SCROLL -->
-    <div class="main-scroll" id="main-scroll-container" onscroll="handleScrollBehavior()">
-      <!-- HOME VIEW -->
-      <div id="view-home" class="view active">
-        <div class="card card-prayer" id="card-prayer">
-          <div class="card-header">
-            <span class="card-title"><i class="fa-solid fa-mosque"></i> <span data-i18n="prayerTitle">Prayer Times</span></span>
-            <span class="pill pill-amber" id="next-prayer-pill">Asr 15:42</span>
-          </div>
-          <div class="prayer-grid" id="prayer-grid"></div>
-        </div>
-        <div class="card" id="card-quickactions" style="--plate:var(--sand);">
-          <div class="card-header"><span class="card-title"><i class="fa-solid fa-bolt"></i> <span data-i18n="quickActions">Quick Actions</span></span></div>
-          <div class="qa-grid">
-            <div class="qa-btn" onclick="openModal('dining-modal')"><i class="fa-solid fa-utensils"></i><span data-i18n="qaMenu">Menu</span></div>
-            <div class="qa-btn" onclick="openModal('transport-modal')"><i class="fa-solid fa-bus"></i><span data-i18n="qaTransport">Transportation</span></div>
-            <div class="qa-btn" onclick="openModal('numbers-modal')"><i class="fa-solid fa-phone"></i><span data-i18n="qaContacts">Contacts</span></div>
-          </div>
-        </div>
-        <div class="card card-announce" id="card-announcement">
-          <div class="card-header">
-            <span class="card-title" style="color:var(--teal);"><i class="fa-solid fa-tower-broadcast" style="color:var(--teal);"></i> <span data-i18n="eventBadge">Camp Announcements</span></span>
-          </div>
-          <div id="announcements-visible"></div>
-          <div id="announcements-hidden" class="hidden-announcements"></div>
-          <button class="expand-btn" id="announce-expand-btn" onclick="toggleAnnouncements()" style="display:none;">
-            <span id="announce-expand-label">Show more</span> <i class="fa-solid fa-chevron-down" id="announce-expand-icon"></i>
-          </button>
-        </div>
-      </div>
-
-      <!-- ABOUT VIEW -->
-      <div id="view-about" class="view">
-        <div class="card card-about-overview" id="card-about-overview">
-          <div class="card-header"><span class="card-title"><i class="fa-solid fa-circle-info"></i> <span data-i18n="navAbout">Site Overview</span></span><span class="pill pill-live" data-i18n="activeBase">Active Base</span></div>
-          <h3 id="about-camp-title" style="font-family:var(--font-display);font-size:1.05rem;">Lekhwair PDO Camp</h3>
-          <p id="about-camp-region" style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">Ad Dhahirah Governorate, North Oman</p>
-          <p id="about-camp-desc" style="font-size:0.79rem;color:var(--text-muted);margin-top:10px;line-height:1.55;"></p>
-        </div>
-        <div class="card" id="card-about-stats" style="--plate:var(--amber);">
-          <div class="card-header"><span class="card-title"><i class="fa-solid fa-chart-simple"></i> <span data-i18n="siteFacts">Site Facts</span></span></div>
-          <div class="stat-grid" id="stats-grid"></div>
-        </div>
-        <div class="card" id="card-about-history" style="--plate:var(--sand);">
-          <div class="card-header"><span class="card-title"><i class="fa-solid fa-timeline"></i> <span data-i18n="historyTitle">Historical Notes</span></span></div>
-          <div id="history-container"></div>
-        </div>
-        <div class="card" id="card-about-companies" style="--plate:var(--teal);">
-          <div class="card-header"><span class="card-title"><i class="fa-solid fa-people-group"></i> <span data-i18n="companiesTitle">Companies & Teams On Site</span></span></div>
-          <div id="companies-container"></div>
-        </div>
-      </div>
-
-      <!-- FACILITY VIEW -->
-      <div id="view-facility" class="view">
-        <div class="card card-facility" id="card-facility">
-          <div class="card-header"><span class="card-title"><i class="fa-solid fa-map-marked-alt"></i> <span data-i18n="navFacility">Camp Facilities</span></span><span style="font-size:0.68rem;color:var(--text-dim);" data-i18n="tapPin">Tap for details</span></div>
-          <div class="map-box"><div id="leaflet-map"></div></div>
-          <div class="map-info-box" id="map-details-box" data-i18n="mapDefaultText">Tap any map pin above to inspect facility timings.</div>
-          <div id="facility-list-container"></div>
-        </div>
-      </div>
-
-      <!-- EVENTS VIEW -->
-      <div id="view-events" class="view">
-        <div class="card card-countdown" id="card-countdown">
-          <div class="card-header"><span class="card-title"><i class="fa-solid fa-hourglass-start"></i> <span data-i18n="nextEventTitle">Next Upcoming Event</span></span><span class="pill pill-amber" id="next-event-tag">Sports</span></div>
-          <h3 id="next-event-name" style="font-family:var(--font-display);font-size:1.02rem;">Inter-Block Football Semi-Final</h3>
-          <p id="next-event-time-desc" style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">Main Sports Ground · Today, 19:30</p>
-          <div class="cd-grid">
-            <div class="cd-box"><div class="cd-val" id="cd-days">00</div><div class="cd-lbl" data-i18n="daysLbl">Days</div></div>
-            <div class="cd-box"><div class="cd-val" id="cd-hours">00</div><div class="cd-lbl" data-i18n="hoursLbl">Hours</div></div>
-            <div class="cd-box"><div class="cd-val" id="cd-mins">00</div><div class="cd-lbl" data-i18n="minsLbl">Mins</div></div>
-            <div class="cd-box"><div class="cd-val" id="cd-secs">00</div><div class="cd-lbl" data-i18n="secsLbl">Secs</div></div>
-          </div>
-        </div>
-        <div class="card" id="card-events" style="--plate:var(--sand);">
-          <div class="card-header"><span class="card-title"><i class="fa-solid fa-calendar-days"></i> <span data-i18n="campSchedule">Current & Upcoming Events</span></span></div>
-          <div class="filter-row" id="event-filters"></div>
-          <div id="events-container"></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- MODALS (Dining, Transport, Numbers) -->
-    <div id="dining-modal" class="modal-overlay">
-      <div class="modal-card">
-        <div class="modal-header"><h2><i class="fa-solid fa-utensils" style="color:var(--amber)"></i> Dining Menu</h2><div class="icon-btn" onclick="closeModal('dining-modal')"><i class="fa-solid fa-xmark"></i></div></div>
-        <div class="day-tabs" id="day-tabs"></div>
-        <div id="dining-container"></div>
-      </div>
-    </div>
-    <div id="transport-modal" class="modal-overlay">
-      <div class="modal-card">
-        <div class="modal-header"><h2><i class="fa-solid fa-bus" style="color:var(--amber)"></i> Transportation Schedule</h2><div class="icon-btn" onclick="closeModal('transport-modal')"><i class="fa-solid fa-xmark"></i></div></div>
-        <div id="transport-container"></div>
-      </div>
-    </div>
-    <div id="numbers-modal" class="modal-overlay">
-      <div class="modal-card">
-        <div class="modal-header"><h2><i class="fa-solid fa-phone-flip" style="color:var(--amber)"></i> Contacts</h2><div class="icon-btn" onclick="closeModal('numbers-modal')"><i class="fa-solid fa-xmark"></i></div></div>
-        <div id="numbers-container"></div>
-      </div>
-    </div>
-
-    <!-- BOTTOM NAV (same) -->
-    <div class="nav-bar nav-visible" id="mobile-nav-bar">
-      <div class="nav-btn active" id="nav-home" onclick="switchTab('home')"><i class="fa-solid fa-house"></i><span data-i18n="navHome">Home</span></div>
-      <div class="nav-btn" id="nav-about" onclick="switchTab('about')"><i class="fa-solid fa-circle-info"></i><span data-i18n="navAboutNav">About</span></div>
-      <div class="nav-btn" id="nav-facility" onclick="switchTab('facility')"><i class="fa-solid fa-map"></i><span data-i18n="navFacilityNav">Facility</span></div>
-      <div class="nav-btn" id="nav-events" onclick="switchTab('events')"><i class="fa-solid fa-calendar-days"></i><span data-i18n="navEvents">Events</span></div>
+  <!-- TOAST -->
+  <div id="toast" class="toast-notification">
+    <div style="display:flex;align-items:center;gap:10px;">
+      <i class="fa-solid fa-tower-broadcast" style="color:var(--amber);font-size:1.15rem;"></i>
+      <div><h4 id="toast-title">Camp Broadcast</h4><p id="toast-body">Notification message...</p></div>
     </div>
   </div>
 
-  <script>
-    // ===== SUPABASE CONFIG =====
-    const SUPABASE_URL = 'https://mywcoynuakmfafzgzlzr.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15d2NveW51YWttZmFmemd6bHpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY1NDc3MjUsImV4cCI6MjEwMjEyMzcyNX0.xLWIUEVq2y_90f__QYPaJyPN7KGMqvBT1RfuwC660Ng';
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  <!-- HEADER -->
+  <div class="top-bar">
+    <div class="header-row">
+      <h1 data-i18n="homeTitle">Welcome Back</h1>
+      <div class="header-actions">
+        <div class="reception-tag"><i class="fa-solid fa-desktop"></i> Reception Mode</div>
+        <select id="lang-selector" class="lang-select"></select>
+        <div class="icon-btn" onclick="triggerToast('Notifications','No unread system alerts.')"><i class="fa-regular fa-bell"></i></div>
+      </div>
+    </div>
+    <div class="location-weather-row">
+      <div class="location-pill" id="location-pill-btn">
+        <i class="fa-solid fa-location-dot"></i>
+        <span id="header-location-name">Lekhwair Camp</span>
+      </div>
+      <div class="mini-status">
+        <div class="mini-status-cell">
+          <i class="fa-solid fa-sun" id="weather-icon"></i>
+          <span id="strip-temp">--°C</span>
+        </div>
+        <div class="mini-status-divider"></div>
+        <div class="mini-status-cell">
+          <i class="fa-regular fa-clock"></i>
+          <span id="strip-time">--:--</span>
+        </div>
+      </div>
+    </div>
+  </div>
 
-    // ===== GLOBAL STATE =====
-    let currentLang = localStorage.getItem('basecamp_lang') || 'en';
-    let staticTranslations = {};
-    let languages = [];
-    let campSettings = null;
-    let prayerTimesData = [];
-    let announcementsData = [];
-    let eventsData = [];
-    let facilitiesData = [];
-    let menuData = {};
-    let transportData = [];
-    let contactsData = [];
-    let leafletMap = null, leafletMarkers = [];
-    let announcementsExpanded = false;
-    let activeFilter = 'All';
-    let activeDay = 'Sat';
-    let nextEventTimestamp = Date.now() + 86400000;
-    let liveWeather = { temp: null, condition: 'sunny', loaded: false };
-    let manualWeather = { temp: '42°C', condition: 'sunny', override: false };
-    let owmApiKey = localStorage.getItem('basecamp_owm_key') || '';
+  <!-- MAIN SCROLL -->
+  <div class="main-scroll" id="main-scroll-container" onscroll="handleScrollBehavior()">
 
-    const PRAYER_ORDER = ['Fajr', 'Dhuhr', 'Asr', 'Maghrib', 'Isha'];
-    const CAMP_LAT = 22.8750, CAMP_LNG = 55.3700;
+    <!-- HOME -->
+    <div id="view-home" class="view active">
+      <div class="card card-prayer" id="card-prayer">
+        <div class="card-header">
+          <span class="card-title"><i class="fa-solid fa-mosque"></i> <span data-i18n="prayerTitle">Prayer Times</span></span>
+          <span class="pill pill-amber" id="next-prayer-pill">Asr 15:42</span>
+        </div>
+        <div class="prayer-grid" id="prayer-grid"></div>
+      </div>
 
-    // ===== HELPERS =====
-    function t(key) { return staticTranslations[key] || key; }
-    function tl(obj, field, lang) { return obj.translations?.[lang]?.[field] ?? obj[field]; }
-    function formatTimeToHM(str) { /* same as before */ }
-    function triggerToast(title, msg) { /* same */ }
-    function openModal(id) { document.getElementById(id).style.display = 'flex'; }
-    function closeModal(id) { document.getElementById(id).style.display = 'none'; }
-    function setViewportHeight() { /* same */ }
+      <div class="card" id="card-quickactions" style="--plate:var(--sand);">
+        <div class="card-header">
+          <span class="card-title"><i class="fa-solid fa-bolt"></i> <span data-i18n="quickActions">Quick Actions</span></span>
+        </div>
+        <div class="qa-grid">
+          <div class="qa-btn" onclick="openModal('dining-modal')"><i class="fa-solid fa-utensils"></i><span data-i18n="qaMenu">Menu</span></div>
+          <div class="qa-btn" onclick="openModal('transport-modal')"><i class="fa-solid fa-bus"></i><span data-i18n="qaTransport">Transportation</span></div>
+          <div class="qa-btn" onclick="openModal('numbers-modal')"><i class="fa-solid fa-phone"></i><span data-i18n="qaContacts">Contacts</span></div>
+        </div>
+      </div>
 
-    // ===== APPLY STATIC TRANSLATIONS =====
-    function applyStaticTranslations() {
-      document.querySelectorAll('[data-i18n]').forEach(el => {
-        const key = el.getAttribute('data-i18n');
-        if (staticTranslations[key]) el.innerHTML = staticTranslations[key];
-      });
-      document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
-      document.documentElement.lang = currentLang;
-      // Update language selector
-      const sel = document.getElementById('lang-selector');
-      if (sel) sel.value = currentLang;
+      <div class="card card-announce" id="card-announcement">
+        <div class="card-header">
+          <span class="card-title" style="color:var(--teal);"><i class="fa-solid fa-tower-broadcast" style="color:var(--teal);"></i> <span data-i18n="eventBadge">Camp Announcements</span></span>
+        </div>
+        <div id="announcements-visible"></div>
+        <div id="announcements-hidden" class="hidden-announcements"></div>
+        <button class="expand-btn" id="announce-expand-btn" onclick="toggleAnnouncements()" style="display:none;">
+          <span id="announce-expand-label">Show more</span> <i class="fa-solid fa-chevron-down" id="announce-expand-icon"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- ABOUT -->
+    <div id="view-about" class="view">
+      <div class="card card-about-overview" id="card-about-overview">
+        <div class="card-header">
+          <span class="card-title"><i class="fa-solid fa-circle-info"></i> <span data-i18n="navAbout">Site Overview</span></span>
+          <span class="pill pill-live" data-i18n="activeBase">Active Base</span>
+        </div>
+        <h3 id="about-camp-title" style="font-family:var(--font-display);font-size:1.05rem;">Lekhwair PDO Camp</h3>
+        <p id="about-camp-region" style="font-size:0.78rem;color:var(--text-muted);margin-top:2px;">Ad Dhahirah Governorate, North Oman</p>
+        <p id="about-camp-desc" style="font-size:0.79rem;color:var(--text-muted);margin-top:10px;line-height:1.55;"></p>
+      </div>
+
+      <div class="card" id="card-about-stats" style="--plate:var(--amber);">
+        <div class="card-header">
+          <span class="card-title"><i class="fa-solid fa-chart-simple"></i> <span data-i18n="siteFacts">Site Facts</span></span>
+        </div>
+        <div class="stat-grid" id="stats-grid"></div>
+      </div>
+
+      <div class="card" id="card-about-history" style="--plate:var(--sand);">
+        <div class="card-header">
+          <span class="card-title"><i class="fa-solid fa-timeline"></i> <span data-i18n="historyTitle">Historical Notes</span></span>
+        </div>
+        <div id="history-container"></div>
+      </div>
+
+      <div class="card" id="card-about-companies" style="--plate:var(--teal);">
+        <div class="card-header">
+          <span class="card-title"><i class="fa-solid fa-people-group"></i> <span data-i18n="companiesTitle">Companies & Teams On Site</span></span>
+        </div>
+        <div id="companies-container"></div>
+      </div>
+    </div>
+
+    <!-- FACILITY -->
+    <div id="view-facility" class="view">
+      <div class="card card-facility" id="card-facility">
+        <div class="card-header">
+          <span class="card-title"><i class="fa-solid fa-map-marked-alt"></i> <span data-i18n="navFacility">Camp Facilities</span></span>
+          <span style="font-size:0.68rem;color:var(--text-dim);" data-i18n="tapPin">Tap for details</span>
+        </div>
+        <div class="map-box"><div id="leaflet-map"></div></div>
+        <div class="map-info-box" id="map-details-box" data-i18n="mapDefaultText">Tap any map pin above to inspect facility timings.</div>
+        <div id="facility-list-container"></div>
+      </div>
+    </div>
+
+    <!-- EVENTS -->
+    <div id="view-events" class="view">
+      <div class="card card-countdown" id="card-countdown">
+        <div class="card-header">
+          <span class="card-title"><i class="fa-solid fa-hourglass-start"></i> <span data-i18n="nextEventTitle">Next Upcoming Event</span></span>
+          <span class="pill pill-amber" id="next-event-tag">Sports</span>
+        </div>
+        <h3 id="next-event-name" style="font-family:var(--font-display);font-size:1.02rem;">Inter-Block Football Semi-Final</h3>
+        <p id="next-event-time-desc" style="font-size:0.75rem;color:var(--text-muted);margin-top:2px;">Main Sports Ground · Today, 19:30</p>
+        <div class="cd-grid">
+          <div class="cd-box"><div class="cd-val" id="cd-days">00</div><div class="cd-lbl" data-i18n="daysLbl">Days</div></div>
+          <div class="cd-box"><div class="cd-val" id="cd-hours">00</div><div class="cd-lbl" data-i18n="hoursLbl">Hours</div></div>
+          <div class="cd-box"><div class="cd-val" id="cd-mins">00</div><div class="cd-lbl" data-i18n="minsLbl">Mins</div></div>
+          <div class="cd-box"><div class="cd-val" id="cd-secs">00</div><div class="cd-lbl" data-i18n="secsLbl">Secs</div></div>
+        </div>
+      </div>
+      <div class="card" id="card-events" style="--plate:var(--sand);">
+        <div class="card-header">
+          <span class="card-title"><i class="fa-solid fa-calendar-days"></i> <span data-i18n="campSchedule">Current & Upcoming Events</span></span>
+        </div>
+        <div class="filter-row" id="event-filters"></div>
+        <div id="events-container"></div>
+      </div>
+    </div>
+
+  </div> <!-- end main-scroll -->
+
+  <!-- MODALS -->
+  <div id="dining-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2><i class="fa-solid fa-utensils" style="color:var(--amber)"></i> Dining Menu</h2>
+        <div class="icon-btn" onclick="closeModal('dining-modal')"><i class="fa-solid fa-xmark"></i></div>
+      </div>
+      <div class="day-tabs" id="day-tabs"></div>
+      <div id="dining-container"></div>
+    </div>
+  </div>
+
+  <div id="transport-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2><i class="fa-solid fa-bus" style="color:var(--amber)"></i> Transportation Schedule</h2>
+        <div class="icon-btn" onclick="closeModal('transport-modal')"><i class="fa-solid fa-xmark"></i></div>
+      </div>
+      <div id="transport-container"></div>
+    </div>
+  </div>
+
+  <div id="numbers-modal" class="modal-overlay">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h2><i class="fa-solid fa-phone-flip" style="color:var(--amber)"></i> Contacts</h2>
+        <div class="icon-btn" onclick="closeModal('numbers-modal')"><i class="fa-solid fa-xmark"></i></div>
+      </div>
+      <div id="numbers-container"></div>
+    </div>
+  </div>
+
+  <!-- BOTTOM NAV -->
+  <div class="nav-bar nav-visible" id="mobile-nav-bar">
+    <div class="nav-btn active" id="nav-home" onclick="switchTab('home')"><i class="fa-solid fa-house"></i><span data-i18n="navHome">Home</span></div>
+    <div class="nav-btn" id="nav-about" onclick="switchTab('about')"><i class="fa-solid fa-circle-info"></i><span data-i18n="navAboutNav">About</span></div>
+    <div class="nav-btn" id="nav-facility" onclick="switchTab('facility')"><i class="fa-solid fa-map"></i><span data-i18n="navFacilityNav">Facility</span></div>
+    <div class="nav-btn" id="nav-events" onclick="switchTab('events')"><i class="fa-solid fa-calendar-days"></i><span data-i18n="navEvents">Events</span></div>
+  </div>
+
+</div> <!-- end app-shell -->
+
+<script>
+  // ============================================================
+  //  SUPABASE CONFIGURATION – REPLACE WITH YOUR OWN
+  // ============================================================
+  const SUPABASE_URL = 'https://mywcoynuakmfafzgzlzr.supabase.co';
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15d2NveW51YWttZmFmemd6bHpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY1NDc3MjUsImV4cCI6MjEwMjEyMzcyNX0.xLWIUEVq2y_90f__QYPaJyPN7KGMqvBT1RfuwC660Ng';
+
+  // ============================================================
+  //  SAFE SUPABASE CLIENT INITIALISATION
+  // ============================================================
+  let supabase;
+  try {
+    const lib = window.supabase || window.Supabase;
+    if (!lib || typeof lib.createClient !== 'function') {
+      throw new Error('Supabase library not loaded');
     }
+    supabase = lib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+  } catch (err) {
+    document.body.innerHTML = `
+      <div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0a0d13;color:#f5f3ec;font-family:Inter,sans-serif;text-align:center;padding:20px;">
+        <div>
+          <h1 style="font-size:1.8rem;margin-bottom:16px;">⚠️ Error</h1>
+          <p style="font-size:1rem;color:#8d93a6;max-width:400px;margin:0 auto;">${err.message}</p>
+          <button onclick="location.reload()" style="margin-top:20px;padding:12px 28px;background:#ff7a1a;border:none;border-radius:12px;color:#1a0d02;font-weight:700;font-size:1rem;cursor:pointer;">Reload</button>
+        </div>
+      </div>
+    `;
+    throw err;
+  }
 
-    // ===== FETCH LANGUAGES & STATIC TRANSLATIONS =====
-    async function loadLanguagesAndTranslations() {
-      const { data: langData } = await supabase.from('languages').select('*').order('is_default', { ascending: false });
-      if (langData) {
-        languages = langData;
-        const sel = document.getElementById('lang-selector');
-        sel.innerHTML = languages.map(l => `<option value="${l.code}">${l.flag || ''} ${l.name}</option>`).join('');
-        sel.value = currentLang;
-        sel.onchange = (e) => { currentLang = e.target.value; localStorage.setItem('basecamp_lang', currentLang); loadStaticTranslations(); };
+  // ============================================================
+  //  GLOBAL STATE
+  // ============================================================
+  let currentLang = localStorage.getItem('basecamp_lang') || 'en';
+  let staticTranslations = {};
+  let languages = [];
+  let campSettings = {};
+  let prayerTimesData = [];
+  let announcementsData = [];
+  let eventsData = [];
+  let facilitiesData = [];
+  let menuData = {};
+  let transportData = [];
+  let contactsData = [];
+  let leafletMap = null, leafletMarkers = [];
+  let announcementsExpanded = false;
+  let activeFilter = 'All';
+  let activeDay = 'Sat';
+  let nextEventTimestamp = Date.now() + 86400000;
+  let liveWeather = { temp: null, condition: 'sunny', loaded: false };
+  let manualWeather = { temp: '42°C', condition: 'sunny', override: false };
+  let owmApiKey = localStorage.getItem('basecamp_owm_key') || '';
+  const PRAYER_ORDER = ['Fajr','Dhuhr','Asr','Maghrib','Isha'];
+  const CAMP_LAT = 22.8750, CAMP_LNG = 55.3700;
+  let lastScrollTop = 0;
+
+  // ============================================================
+  //  HELPERS
+  // ============================================================
+  function t(key) { return staticTranslations[key] || key; }
+  function tl(obj, field, lang) { return obj.translations?.[lang]?.[field] ?? obj[field]; }
+  function formatTimeToHM(str) {
+    if (!str) return '';
+    const parts = str.split(':');
+    if (parts.length >= 2) return parts[0].padStart(2,'0') + ':' + parts[1].padStart(2,'0');
+    return str;
+  }
+  function triggerToast(title, msg) {
+    const t = document.getElementById('toast');
+    document.getElementById('toast-title').textContent = title;
+    document.getElementById('toast-body').textContent = msg;
+    t.style.display = 'block';
+    clearTimeout(t._timer);
+    t._timer = setTimeout(() => { t.style.display = 'none'; }, 4000);
+  }
+  function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+  function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+  function setViewportHeight() {
+    document.documentElement.style.setProperty('--vh', (window.innerHeight * 0.01) + 'px');
+  }
+  setViewportHeight();
+  window.addEventListener('resize', setViewportHeight);
+  window.addEventListener('orientationchange', setViewportHeight);
+
+  // ============================================================
+  //  LANGUAGE & TRANSLATIONS
+  // ============================================================
+  async function loadLanguages() {
+    const { data, error } = await supabase.from('languages').select('*').order('is_default', { ascending: false });
+    if (error) { console.error('Load languages error:', error); return; }
+    languages = data || [];
+    const sel = document.getElementById('lang-selector');
+    sel.innerHTML = languages.map(l =>
+      `<option value="${l.code}" ${l.code === currentLang ? 'selected' : ''}>${l.flag || ''} ${l.name}</option>`
+    ).join('');
+    sel.onchange = (e) => {
+      currentLang = e.target.value;
+      localStorage.setItem('basecamp_lang', currentLang);
+      loadStaticTranslations();
+    };
+    await loadStaticTranslations();
+  }
+
+  async function loadStaticTranslations() {
+    const { data, error } = await supabase.from('translations').select('key, translation').eq('language_code', currentLang);
+    if (error) { console.error('Load translations error:', error); return; }
+    staticTranslations = {};
+    (data || []).forEach(row => { staticTranslations[row.key] = row.translation; });
+    applyStaticTranslations();
+    // Re-render all dynamic content (the UI uses t() and tl())
+    renderAll();
+  }
+
+  function applyStaticTranslations() {
+    document.querySelectorAll('[data-i18n]').forEach(el => {
+      const key = el.getAttribute('data-i18n');
+      if (staticTranslations[key]) {
+        el.innerHTML = staticTranslations[key];
       }
-      await loadStaticTranslations();
-    }
+    });
+    document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
+    document.documentElement.lang = currentLang;
+    // Update language selector
+    const sel = document.getElementById('lang-selector');
+    if (sel) sel.value = currentLang;
+  }
 
-    async function loadStaticTranslations() {
-      const { data } = await supabase.from('translations').select('key, translation').eq('language_code', currentLang);
-      if (data) {
-        staticTranslations = {};
-        data.forEach(row => staticTranslations[row.key] = row.translation);
-      }
-      applyStaticTranslations();
-    }
-
-    // ===== FETCH ALL DATA =====
-    async function fetchAllData() {
-      // Settings
+  // ============================================================
+  //  FETCH ALL DATA
+  // ============================================================
+  async function fetchAllData() {
+    try {
+      // Camp settings
       const { data: settings } = await supabase.from('camp_settings').select('*').limit(1);
-      campSettings = settings?.[0] || null;
+      campSettings = settings?.[0] || {};
       // Prayer times
       const { data: prayers } = await supabase.from('prayer_times').select('*');
       prayerTimesData = prayers?.sort((a,b) => PRAYER_ORDER.indexOf(a.name) - PRAYER_ORDER.indexOf(b.name)) || [];
@@ -1586,7 +629,7 @@
       // Contacts
       const { data: ct } = await supabase.from('contacts').select('*');
       contactsData = ct || [];
-      // Weather override from settings
+      // Weather override
       if (campSettings) {
         manualWeather.override = campSettings.weather_override || false;
         manualWeather.condition = campSettings.weather_condition || 'sunny';
@@ -1594,73 +637,452 @@
         owmApiKey = campSettings.owm_api_key || '';
       }
       renderAll();
+    } catch (err) {
+      console.error('Fetch data error:', err);
+      triggerToast('Error', 'Failed to load data. Please refresh.');
     }
+  }
 
-    // ===== RENDER FUNCTIONS (same as before, but use t() and tl() ) =====
-    function renderPrayerTimes() { /* identical to original but uses window._prayerTimes built from prayerTimesData */ }
-    function renderAnnouncements() { /* use tl(ann, 'title') etc */ }
-    function renderEvents() { /* use tl(event, 'title') etc */ }
-    function renderFacilityList() { /* use tl(fac, 'name') and tl(fac, 'info') */ }
-    function renderDining() { /* menu items are strings, can be stored as translations per meal item if needed; here we keep simple */ }
-    function renderTransport() { /* use tl(tr, 'name') and tl(tr, 'route') */ }
-    function renderNumbers() { /* use tl(contact, 'title') and tl(contact, 'subtitle') */ }
-    function renderAboutSection() { /* use tl(campSettings, 'description') and translations for history array, companies */ }
-    function renderEventFilters() { /* same */ }
-    function renderDayTabs() { /* same */ }
-    function renderMapMarkers() { /* use tl(fac, 'name') and tl(fac, 'info') in popup */ }
-    function renderStatusStrip() { /* same */ }
-    function renderAll() {
-      renderPrayerTimes();
-      renderAboutSection();
-      renderAnnouncements();
-      renderEventFilters();
-      renderEvents();
-      renderFacilityList();
-      renderDayTabs();
-      renderDining();
-      renderTransport();
-      renderNumbers();
-      renderStatusStrip();
-      if (leafletMap) renderMapMarkers();
+  // ============================================================
+  //  RENDER FUNCTIONS
+  // ============================================================
+  function renderPrayerTimes() {
+    const now = new Date();
+    const utcHours = now.getUTCHours(), utcMins = now.getUTCMinutes();
+    const omanHours = (utcHours + 4) % 24;
+    const nowMins = omanHours * 60 + utcMins;
+    const isFriday = now.getUTCDay() === 5;
+
+    const displayTimes = prayerTimesData.map(p => {
+      let displayName = p.name;
+      if (isFriday && p.name === 'Dhuhr') displayName = 'Juma';
+      let hour = parseInt(p.adhan_time.split(':')[0]);
+      let minute = parseInt(p.adhan_time.split(':')[1]);
+      if (isNaN(hour) || isNaN(minute)) return { ...p, displayName, displayTime: p.adhan_time, displayHour: 0, displayMinute: 0 };
+      // Convert 12‑h to 24‑h for afternoon prayers
+      if ((p.name === 'Asr' || p.name === 'Maghrib' || p.name === 'Isha' || p.name === 'Dhuhr') && hour < 12) hour += 12;
+      const displayTime = String(hour).padStart(2,'0') + ':' + String(minute).padStart(2,'0');
+      return { ...p, displayName, displayTime, displayHour: hour, displayMinute: minute };
+    });
+
+    let nextIdx = displayTimes.findIndex(p => (p.displayHour * 60 + p.displayMinute) >= nowMins);
+    if (nextIdx === -1) nextIdx = 0;
+
+    const pill = document.getElementById('next-prayer-pill');
+    if (pill) pill.innerText = displayTimes[nextIdx].displayName + ' ' + displayTimes[nextIdx].displayTime;
+
+    const grid = document.getElementById('prayer-grid');
+    grid.innerHTML = displayTimes.map((p, i) => {
+      const iqama = computeIqama(p.displayTime, p.iqama_offset);
+      return `
+        <div class="prayer-cell ${i === nextIdx ? 'next' : ''}">
+          <div class="prayer-name">${p.displayName}</div>
+          <div class="prayer-time">${p.displayTime}</div>
+          <div class="prayer-iqama">${iqama}</div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  function computeIqama(adhan, offset) {
+    if (!adhan || offset === undefined) return '';
+    const [h,m] = adhan.split(':').map(Number);
+    if (isNaN(h) || isNaN(m)) return '';
+    const total = h*60 + m + offset;
+    const nh = Math.floor(total/60) % 24;
+    const nm = total % 60;
+    return String(nh).padStart(2,'0') + ':' + String(nm).padStart(2,'0');
+  }
+
+  function renderAnnouncements() {
+    const sorted = [...announcementsData].sort((a,b) => new Date(b.date) - new Date(a.date));
+    const visible = sorted.slice(0,4);
+    const rest = sorted.slice(4);
+    const itemHtml = a => `
+      <div class="announcement-item">
+        <h4>${tl(a, 'title', currentLang)}</h4>
+        <p>${tl(a, 'description', currentLang)}</p>
+        <div class="announcement-meta">
+          <span><i class="fa-regular fa-calendar"></i> ${formatDate(a.date)}</span>
+          <span><i class="fa-solid fa-location-dot"></i> ${tl(a, 'location', currentLang)}</span>
+        </div>
+      </div>
+    `;
+    document.getElementById('announcements-visible').innerHTML = visible.map(itemHtml).join('') || '<p style="font-size:0.78rem;color:var(--text-dim);">No announcements yet.</p>';
+    document.getElementById('announcements-hidden').innerHTML = rest.map(itemHtml).join('');
+    const btn = document.getElementById('announce-expand-btn');
+    if (rest.length > 0) {
+      btn.style.display = 'flex';
+      document.getElementById('announce-expand-label').innerText = announcementsExpanded ? 'Show less' : `Show ${rest.length} more`;
+      document.getElementById('announce-expand-icon').style.transform = announcementsExpanded ? 'rotate(180deg)' : 'rotate(0deg)';
+    } else btn.style.display = 'none';
+    document.getElementById('announcements-hidden').classList.toggle('expanded', announcementsExpanded);
+  }
+
+  function formatDate(iso) {
+    const d = new Date(iso + 'T00:00:00');
+    return d.toLocaleDateString([], { day:'2-digit', month:'short', year:'numeric' });
+  }
+
+  function renderAboutSection() {
+    document.getElementById('about-camp-title').innerText = campSettings.camp_name || 'Lekhwair PDO Camp';
+    document.getElementById('about-camp-region').innerText = campSettings.region || '';
+    document.getElementById('about-camp-desc').innerText = tl(campSettings, 'description', currentLang) || '';
+    document.getElementById('stats-grid').innerHTML = `
+      <div class="stat-tile"><div class="stat-val">${campSettings.production || '——'}</div><div class="stat-lbl">Daily Production</div></div>
+      <div class="stat-tile"><div class="stat-val">${campSettings.personnel || '——'}</div><div class="stat-lbl">Camp Personnel</div></div>
+      <div class="stat-tile"><div class="stat-val">${campSettings.companies_count || '——'}</div><div class="stat-lbl">Companies On Site</div></div>
+      <div class="stat-tile"><div class="stat-val">${campSettings.established || '——'}</div><div class="stat-lbl">Established</div></div>
+    `;
+    const history = campSettings.history || [];
+    document.getElementById('history-container').innerHTML = history.map(h => `
+      <div class="history-item"><div class="history-dot"></div><p><strong>${h.title}</strong>${h.desc}</p></div>
+    `).join('');
+    const companies = campSettings.companies || [];
+    document.getElementById('companies-container').innerHTML = companies.map(c => `
+      <span class="company-chip"><i class="fa-solid fa-building"></i>${c}</span>
+    `).join('');
+  }
+
+  function renderEventFilters() {
+    const cats = ['All', ...new Set(eventsData.map(e => e.category))];
+    document.getElementById('event-filters').innerHTML = cats.map(c =>
+      `<div class="filter-chip ${c === activeFilter ? 'active' : ''}" onclick="setFilter('${c}')">${c}</div>`
+    ).join('');
+  }
+
+  function setFilter(cat) { activeFilter = cat; renderEventFilters(); renderEvents(); }
+
+  function renderEvents() {
+    const sorted = [...eventsData].sort((a,b) => a.timeVal - b.timeVal);
+    if (sorted.length > 0) {
+      const first = sorted[0];
+      document.getElementById('next-event-name').innerText = tl(first, 'title', currentLang);
+      document.getElementById('next-event-time-desc').innerHTML =
+        `<i class="fa-solid fa-location-dot"></i> ${tl(first, 'location', currentLang)} &bull; <i class="fa-regular fa-clock"></i> ${first.date}`;
+      document.getElementById('next-event-tag').innerText = first.category;
+      nextEventTimestamp = first.timeVal;
     }
+    const list = activeFilter === 'All' ? sorted : sorted.filter(e => e.category === activeFilter);
+    document.getElementById('events-container').innerHTML = list.map(ev => `
+      <div class="event-row">
+        <div class="event-icon"><i class="fa-solid ${ev.icon || 'fa-calendar-days'}"></i></div>
+        <div class="event-body">
+          <h4>${ev.live ? '<span class=\"live-dot\"></span>' : ''}${tl(ev, 'title', currentLang)}</h4>
+          <div class="meta">
+            <span><i class="fa-regular fa-calendar-days"></i> ${ev.date}</span>
+            <span><i class="fa-solid fa-location-dot"></i> ${tl(ev, 'location', currentLang)}</span>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
 
-    // ===== MAP INIT =====
-    function initFacilityMap() { /* same as original, but using facilitiesData */ }
+  function renderDayTabs() {
+    const days = Object.keys(menuData);
+    if (days.length === 0) return;
+    document.getElementById('day-tabs').innerHTML = days.map(d =>
+      `<div class="day-tab ${d === activeDay ? 'active' : ''}" onclick="setDay('${d}')">${d}</div>`
+    ).join('');
+  }
 
-    // ===== WEATHER =====
-    async function fetchLiveWeather() { /* same as original */ }
+  function setDay(d) { activeDay = d; renderDayTabs(); renderDining(); }
 
-    // ===== COUNTDOWN =====
-    function updateCountdown() { /* same */ }
+  function renderDining() {
+    const dayMenu = menuData[activeDay] || {};
+    const times = { Breakfast: '04:30 – 08:00', Lunch: '12:00 – 14:00', Dinner: '17:00 – 21:00' };
+    const icons = { Breakfast: 'fa-mug-hot', Lunch: 'fa-bowl-food', Dinner: 'fa-utensils' };
+    const meals = Object.keys(dayMenu);
+    document.getElementById('dining-container').innerHTML = meals.map(meal => `
+      <div class="meal-block">
+        <h5><i class="fa-solid ${icons[meal]}" style="color:var(--amber);"></i> ${meal} <span class="meal-time">· ${times[meal] || ''}</span></h5>
+        <div class="food-row">${(dayMenu[meal] || []).map(item => `<span class="food-chip">${item}</span>`).join('')}</div>
+      </div>
+    `).join('');
+  }
 
-    // ===== NAVIGATION =====
-    function switchTab(tabId) { /* same */ }
-    function handleScrollBehavior() { /* same */ }
-    function toggleAnnouncements() { /* same */ }
-    function setFilter(cat) { activeFilter = cat; renderEventFilters(); renderEvents(); }
-    function setDay(d) { activeDay = d; renderDayTabs(); renderDining(); }
+  function renderTransport() {
+    document.getElementById('transport-container').innerHTML = transportData.map(t => `
+      <div class="transport-row">
+        <div class="t-top">
+          <h4>${tl(t, 'name', currentLang)}</h4>
+          <span class="pill ${t.status === 'upcoming' ? 'pill-amber' : 'pill-live'}">${t.time}</span>
+        </div>
+        <p><i class="fa-solid fa-route"></i> ${tl(t, 'route', currentLang)}</p>
+      </div>
+    `).join('');
+  }
 
-    // ===== INIT =====
-    async function init() {
-      await loadLanguagesAndTranslations();
-      await fetchAllData();
-      fetchLiveWeather();
-      setInterval(fetchLiveWeather, 900000);
-      setInterval(() => { document.getElementById('strip-time').innerText = new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' }); }, 1000);
-      setInterval(updateCountdown, 1000);
-      initFacilityMap();
-      checkDesktopMode();
-      window.addEventListener('resize', checkDesktopMode);
+  function renderNumbers() {
+    const groups = { emergency: 'Emergency', ops: 'Operations', services: 'Camp Services' };
+    const container = document.getElementById('numbers-container');
+    let html = '';
+    Object.keys(groups).forEach(catKey => {
+      const items = contactsData.filter(n => n.category === catKey);
+      if (items.length === 0) return;
+      html += `<div class="numbers-group"><h5>${groups[catKey]}</h5>`;
+      items.forEach(n => {
+        const isEmerg = n.category === 'emergency';
+        html += `
+          <div class="contact-card">
+            <div class="contact-info">
+              <div class="contact-icon" style="background:${isEmerg ? 'var(--red-soft)' : 'var(--amber-soft)'};color:${isEmerg ? 'var(--red)' : 'var(--amber)'};">
+                <i class="fa-solid ${isEmerg ? 'fa-hospital' : 'fa-phone'}"></i>
+              </div>
+              <div><h4>${tl(n, 'title', currentLang)}</h4><p>${tl(n, 'subtitle', currentLang)}</p></div>
+            </div>
+            <a href="tel:${n.phone}" class="call-btn ${isEmerg ? 'call-btn-danger' : ''}"><i class="fa-solid fa-phone"></i></a>
+          </div>
+        `;
+      });
+      html += `</div>`;
+    });
+    container.innerHTML = html;
+  }
+
+  // ============================================================
+  //  MAP
+  // ============================================================
+  function initFacilityMap() {
+    if (typeof L === 'undefined') {
+      document.getElementById('leaflet-map').innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:center;height:100%;padding:16px;text-align:center;font-size:0.75rem;color:var(--text-dim);">
+          <span><i class="fa-solid fa-map-location-dot" style="display:block;font-size:1.4rem;margin-bottom:8px;color:var(--text-dim);"></i>Map library failed to load — check your internet connection and reload.</span>
+        </div>
+      `;
+      return;
     }
+    leafletMap = L.map('leaflet-map', { zoomControl: false, attributionControl: true }).setView([CAMP_LAT, CAMP_LNG], 17);
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+      attribution: 'Tiles &copy; Esri — Source: Esri, Maxar, Earthstar Geographics',
+      maxZoom: 19
+    }).addTo(leafletMap);
+    L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+      maxZoom: 19, opacity: 0.9
+    }).addTo(leafletMap);
+    L.control.zoom({ position: 'bottomright' }).addTo(leafletMap);
+    renderMapMarkers();
+  }
 
-    function checkDesktopMode() { /* same */ }
+  function renderMapMarkers() {
+    if (!leafletMap) return;
+    leafletMarkers.forEach(m => leafletMap.removeLayer(m));
+    leafletMarkers = [];
+    facilitiesData.forEach(p => {
+      const icon = L.divIcon({
+        className: '',
+        html: `<div class="geo-pin" style="background:${p.color};"><i class="fa-solid ${p.icon}"></i></div>`,
+        iconSize: [28,28],
+        iconAnchor: [14,28]
+      });
+      const marker = L.marker([p.lat, p.lng], { icon }).addTo(leafletMap);
+      marker.bindPopup(`<strong>${tl(p, 'name', currentLang)}</strong><br>${tl(p, 'info', currentLang).replace('\n','<br>')}`);
+      marker.on('click', () => showMapInfo(tl(p, 'name', currentLang), tl(p, 'info', currentLang)));
+      leafletMarkers.push(marker);
+    });
+  }
 
-    document.addEventListener('DOMContentLoaded', init);
-    // Expose globals
-    window.triggerToast = triggerToast; window.openModal = openModal; window.closeModal = closeModal;
-    window.switchTab = switchTab; window.handleScrollBehavior = handleScrollBehavior;
-    window.toggleAnnouncements = toggleAnnouncements; window.setFilter = setFilter; window.setDay = setDay;
-    window.focusFacility = focusFacility; /* etc */
-  </script>
+  function showMapInfo(title, info) {
+    document.getElementById('map-details-box').innerHTML = `<strong>${title}</strong><br>${info.replace('\n','<br>')}`;
+  }
+
+  function renderFacilityList() {
+    const container = document.getElementById('facility-list-container');
+    container.innerHTML = facilitiesData.map(p => {
+      const firstLine = tl(p, 'info', currentLang).split('\n')[0];
+      return `<div class="facility-list-row" onclick="focusFacility(${p.id})">
+        <span class="fl-name"><i class="fa-solid ${p.icon}"></i>${tl(p, 'name', currentLang)}</span>
+        <span class="fl-time">${firstLine.replace('Timing: ','')}</span>
+      </div>`;
+    }).join('');
+  }
+
+  function focusFacility(id) {
+    const p = facilitiesData.find(pl => pl.id === id);
+    if (!p) return;
+    showMapInfo(tl(p, 'name', currentLang), tl(p, 'info', currentLang));
+    if (leafletMap) leafletMap.setView([p.lat, p.lng], 18);
+  }
+
+  // ============================================================
+  //  WEATHER
+  // ============================================================
+  function getTimeAwareWeatherIcon(condition) {
+    const now = new Date();
+    const nowMins = now.getHours() * 60 + now.getMinutes();
+    let fajrMins = 6*60, maghribMins = 18*60;
+    prayerTimesData.forEach(p => {
+      if (p.name === 'Fajr') {
+        const [h,m] = p.adhan_time.split(':').map(Number);
+        if (!isNaN(h) && !isNaN(m)) fajrMins = h*60 + m;
+      }
+      if (p.name === 'Maghrib') {
+        const [h,m] = p.adhan_time.split(':').map(Number);
+        if (!isNaN(h) && !isNaN(m)) maghribMins = h*60 + m;
+      }
+    });
+    const isNight = nowMins < fajrMins || nowMins >= maghribMins;
+    if (isNight) return 'fa-moon';
+    const map = { sunny: 'fa-sun', cloudy: 'fa-cloud-sun', rain: 'fa-cloud-rain', sand: 'fa-smog' };
+    return map[condition] || 'fa-sun';
+  }
+
+  function renderStatusStrip() {
+    document.getElementById('strip-time').innerText = new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+    const useManual = manualWeather.override;
+    const temp = useManual ? manualWeather.temp : (liveWeather.loaded ? liveWeather.temp : manualWeather.temp);
+    const cond = useManual ? manualWeather.condition : (liveWeather.loaded ? liveWeather.condition : manualWeather.condition);
+    document.getElementById('strip-temp').innerText = temp;
+    const iconClass = getTimeAwareWeatherIcon(cond);
+    document.getElementById('weather-icon').className = 'fa-solid ' + iconClass;
+  }
+
+  async function fetchLiveWeather() {
+    if (owmApiKey) {
+      try {
+        const res = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${CAMP_LAT}&lon=${CAMP_LNG}&units=metric&appid=${owmApiKey}`);
+        if (!res.ok) throw new Error('OWM failed');
+        const data = await res.json();
+        liveWeather.temp = Math.round(data.main.temp) + '°C';
+        liveWeather.condition = mapOwmCondition(data.weather[0].main);
+        liveWeather.loaded = true;
+        renderStatusStrip();
+        return;
+      } catch (_) {}
+    }
+    try {
+      const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${CAMP_LAT}&longitude=${CAMP_LNG}&current=temperature_2m,weather_code&timezone=auto`);
+      const data = await res.json();
+      liveWeather.temp = Math.round(data.current.temperature_2m) + '°C';
+      liveWeather.condition = mapWeatherCode(data.current.weather_code);
+      liveWeather.loaded = true;
+    } catch (_) { liveWeather.loaded = false; }
+    renderStatusStrip();
+  }
+
+  function mapWeatherCode(code) {
+    if (code === 0) return 'sunny';
+    if ([1,2,3].includes(code)) return 'cloudy';
+    if ([45,48].includes(code)) return 'sand';
+    if ([51,53,55,56,57,61,63,65,66,67,80,81,82,95,96,99].includes(code)) return 'rain';
+    return 'sunny';
+  }
+  function mapOwmCondition(main) {
+    const m = (main||'').toLowerCase();
+    if (m === 'clear') return 'sunny';
+    if (['clouds'].includes(m)) return 'cloudy';
+    if (['dust','sand','haze','smoke','ash'].includes(m)) return 'sand';
+    if (['rain','drizzle','thunderstorm','mist','fog','snow','squall','tornado'].includes(m)) return 'rain';
+    return 'sunny';
+  }
+
+  // ============================================================
+  //  COUNTDOWN
+  // ============================================================
+  function updateCountdown() {
+    const now = Date.now();
+    const distance = nextEventTimestamp - now;
+    if (distance < 0) return;
+    const days = Math.floor(distance / (1000*60*60*24));
+    const hours = Math.floor((distance % (1000*60*60*24)) / (1000*60*60));
+    const mins = Math.floor((distance % (1000*60*60)) / (1000*60));
+    const secs = Math.floor((distance % (1000*60)) / 1000);
+    document.getElementById('cd-days').innerText = String(days).padStart(2,'0');
+    document.getElementById('cd-hours').innerText = String(hours).padStart(2,'0');
+    document.getElementById('cd-mins').innerText = String(mins).padStart(2,'0');
+    document.getElementById('cd-secs').innerText = String(secs).padStart(2,'0');
+  }
+
+  // ============================================================
+  //  NAVIGATION
+  // ============================================================
+  function switchTab(tabId) {
+    if (window.innerWidth > 768) return;
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.querySelectorAll('.nav-btn').forEach(n => n.classList.remove('active'));
+    document.getElementById('view-'+tabId).classList.add('active');
+    document.getElementById('nav-'+tabId).classList.add('active');
+    document.getElementById('main-scroll-container').scrollTop = 0;
+    if (tabId === 'facility' && leafletMap) setTimeout(() => leafletMap.invalidateSize(), 150);
+  }
+
+  function handleScrollBehavior() {
+    if (window.innerWidth > 768) return;
+    const c = document.getElementById('main-scroll-container');
+    const nb = document.getElementById('mobile-nav-bar');
+    const st = c.scrollTop, sh = c.scrollHeight, ch = c.clientHeight;
+    const atBottom = st + ch >= sh - 15;
+    if (atBottom) { nb.classList.remove('nav-hidden'); nb.classList.add('nav-visible'); }
+    else if (st > lastScrollTop && st > 50) { nb.classList.remove('nav-visible'); nb.classList.add('nav-hidden'); }
+    else if (st < lastScrollTop) { nb.classList.remove('nav-hidden'); nb.classList.add('nav-visible'); }
+    lastScrollTop = st <= 0 ? 0 : st;
+  }
+
+  function toggleAnnouncements() {
+    announcementsExpanded = !announcementsExpanded;
+    renderAnnouncements();
+  }
+
+  // ============================================================
+  //  RENDER ALL
+  // ============================================================
+  function renderAll() {
+    renderPrayerTimes();
+    renderAboutSection();
+    renderAnnouncements();
+    renderEventFilters();
+    renderEvents();
+    renderFacilityList();
+    renderDayTabs();
+    renderDining();
+    renderTransport();
+    renderNumbers();
+    renderStatusStrip();
+    if (leafletMap) renderMapMarkers();
+  }
+
+  // ============================================================
+  //  DESKTOP / MOBILE CHECK
+  // ============================================================
+  function checkDesktopMode() {
+    if (window.innerWidth > 768) {
+      document.querySelectorAll('.view').forEach(v => v.classList.add('active'));
+      if (leafletMap) setTimeout(() => leafletMap.invalidateSize(), 150);
+    } else {
+      switchTab('home');
+    }
+  }
+
+  // ============================================================
+  //  INIT
+  // ============================================================
+  async function init() {
+    await loadLanguages();
+    await fetchAllData();
+    fetchLiveWeather();
+    setInterval(fetchLiveWeather, 900000);
+    setInterval(() => {
+      document.getElementById('strip-time').innerText = new Date().toLocaleTimeString([], { hour:'2-digit', minute:'2-digit' });
+    }, 1000);
+    setInterval(updateCountdown, 1000);
+    initFacilityMap();
+    checkDesktopMode();
+    window.addEventListener('resize', checkDesktopMode);
+  }
+
+  document.addEventListener('DOMContentLoaded', init);
+
+  // Expose globals
+  window.triggerToast = triggerToast;
+  window.openModal = openModal;
+  window.closeModal = closeModal;
+  window.switchTab = switchTab;
+  window.handleScrollBehavior = handleScrollBehavior;
+  window.toggleAnnouncements = toggleAnnouncements;
+  window.setFilter = setFilter;
+  window.setDay = setDay;
+  window.focusFacility = focusFacility;
+  window.renderPrayerTimes = renderPrayerTimes;
+</script>
 </body>
 </html>
