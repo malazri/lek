@@ -8,7 +8,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    /* ===== All styles (same as before) ===== */
+    /* ===== All styles ===== */
     :root {
       --bg: #0a0d13;
       --surface: #121826;
@@ -157,6 +157,8 @@
     .btn-secondary { background: var(--surface-3); color: var(--text); border: 1px solid var(--border); }
     .btn-secondary:hover { background: var(--surface-2); }
     .btn-sm { padding: 4px 10px; font-size: 0.7rem; }
+    .btn-success { background: var(--teal); color: #0a0d13; }
+    .btn-success:hover { filter: brightness(1.1); }
 
     .lang-tabs {
       display: flex;
@@ -184,6 +186,73 @@
     .row .col { flex: 1; min-width: 200px; }
 
     .empty-state { color: var(--text-dim); font-style: italic; padding: 12px 0; }
+
+    .admin-item {
+      background: var(--surface-2);
+      border: 1px solid var(--border-soft);
+      border-radius: var(--r-md);
+      padding: 14px 16px;
+      margin-bottom: 12px;
+    }
+    .admin-item .item-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .admin-item .item-title {
+      font-weight: 600;
+      font-size: 0.95rem;
+    }
+    .admin-item .item-meta {
+      font-size: 0.75rem;
+      color: var(--text-dim);
+      margin-top: 2px;
+    }
+    .admin-item .item-actions {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+    }
+    .admin-item .item-desc {
+      font-size: 0.82rem;
+      color: var(--text-muted);
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+    .admin-item .translation-toggle {
+      margin-top: 10px;
+      cursor: pointer;
+      color: var(--teal);
+      font-size: 0.75rem;
+      font-weight: 600;
+      background: none;
+      border: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 0;
+    }
+    .admin-item .translation-toggle:hover { opacity: 0.8; }
+    .admin-item .translations-section {
+      display: none;
+      margin-top: 12px;
+      padding-top: 12px;
+      border-top: 1px solid var(--border-soft);
+    }
+    .admin-item .translations-section.open { display: block; }
+
+    .form-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 4px; }
+    .form-section {
+      background: var(--surface-3);
+      padding: 16px;
+      border-radius: var(--r-md);
+      margin-bottom: 16px;
+      border: 1px solid var(--border-soft);
+    }
+    .form-section .form-row { display: flex; gap: 12px; flex-wrap: wrap; }
+    .form-section .form-row .form-group { flex: 1; min-width: 150px; }
 
     .toast-notification {
       position: fixed;
@@ -234,6 +303,7 @@
       .admin-footer .btn { font-size: 0; padding: 8px; }
       .admin-footer .btn i { font-size: 1.2rem; }
       .admin-content { padding: 16px; }
+      .form-section .form-row { flex-direction: column; }
     }
   </style>
 </head>
@@ -303,7 +373,7 @@
       </div>
     </div>
 
-    <!-- LANGUAGES -->
+    <!-- LANGUAGES (unchanged) -->
     <div id="tab-languages" class="tab-pane">
       <div class="admin-card">
         <h3><i class="fa-solid fa-language"></i> Languages</h3>
@@ -319,7 +389,7 @@
       </div>
     </div>
 
-    <!-- TRANSLATIONS -->
+    <!-- TRANSLATIONS (unchanged) -->
     <div id="tab-translations" class="tab-pane">
       <div class="admin-card">
         <h3><i class="fa-solid fa-font"></i> Static Translations</h3>
@@ -344,8 +414,20 @@
     <div id="tab-announcements" class="tab-pane">
       <div class="admin-card">
         <h3><i class="fa-solid fa-bullhorn"></i> Announcements</h3>
-        <button class="btn btn-primary" onclick="showAddAnnouncement()"><i class="fa-solid fa-plus"></i> New Announcement</button>
-        <div id="announcements-admin-list" style="margin-top:16px;"></div>
+        <div class="form-section" id="announcement-form">
+          <h4 id="announcement-form-title">Add New Announcement</h4>
+          <div class="form-row">
+            <div class="form-group"><label>Title</label><input type="text" id="ann-title" class="form-control" placeholder="Announcement title"></div>
+            <div class="form-group"><label>Location</label><input type="text" id="ann-location" class="form-control" placeholder="Location"></div>
+          </div>
+          <div class="form-group"><label>Description</label><textarea id="ann-description" class="form-control" rows="2" placeholder="Details..."></textarea></div>
+          <div class="form-group"><label>Date</label><input type="date" id="ann-date" class="form-control"></div>
+          <div class="form-actions">
+            <button class="btn btn-primary" id="ann-submit-btn" onclick="submitAnnouncement()"><i class="fa-solid fa-plus"></i> Add Announcement</button>
+            <button class="btn btn-secondary" id="ann-cancel-btn" onclick="cancelAnnouncementEdit()" style="display:none;">Cancel</button>
+          </div>
+        </div>
+        <div id="announcements-admin-list"></div>
       </div>
     </div>
 
@@ -353,8 +435,22 @@
     <div id="tab-events" class="tab-pane">
       <div class="admin-card">
         <h3><i class="fa-solid fa-calendar-days"></i> Events</h3>
-        <button class="btn btn-primary" onclick="showAddEvent()"><i class="fa-solid fa-plus"></i> New Event</button>
-        <div id="events-admin-list" style="margin-top:16px;"></div>
+        <div class="form-section" id="event-form">
+          <h4 id="event-form-title">Add New Event</h4>
+          <div class="form-row">
+            <div class="form-group"><label>Title</label><input type="text" id="ev-title" class="form-control" placeholder="Event title"></div>
+            <div class="form-group"><label>Category</label><input type="text" id="ev-category" class="form-control" placeholder="Category"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Date &amp; Time</label><input type="text" id="ev-date" class="form-control" placeholder="Today, 19:30"></div>
+            <div class="form-group"><label>Location</label><input type="text" id="ev-location" class="form-control" placeholder="Location"></div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-primary" id="ev-submit-btn" onclick="submitEvent()"><i class="fa-solid fa-plus"></i> Add Event</button>
+            <button class="btn btn-secondary" id="ev-cancel-btn" onclick="cancelEventEdit()" style="display:none;">Cancel</button>
+          </div>
+        </div>
+        <div id="events-admin-list"></div>
       </div>
     </div>
 
@@ -362,12 +458,27 @@
     <div id="tab-facilities" class="tab-pane">
       <div class="admin-card">
         <h3><i class="fa-solid fa-map-location-dot"></i> Facilities</h3>
-        <button class="btn btn-primary" onclick="showAddFacility()"><i class="fa-solid fa-plus"></i> New Facility</button>
-        <div id="facilities-admin-list" style="margin-top:16px;"></div>
+        <div class="form-section" id="facility-form">
+          <h4 id="facility-form-title">Add New Facility</h4>
+          <div class="form-row">
+            <div class="form-group"><label>Name</label><input type="text" id="fac-name" class="form-control" placeholder="Facility name"></div>
+            <div class="form-group"><label>Icon (FontAwesome class)</label><input type="text" id="fac-icon" class="form-control" placeholder="fa-utensils"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Latitude</label><input type="text" id="fac-lat" class="form-control" placeholder="22.8750"></div>
+            <div class="form-group"><label>Longitude</label><input type="text" id="fac-lng" class="form-control" placeholder="55.3700"></div>
+          </div>
+          <div class="form-group"><label>Info / Timing</label><textarea id="fac-info" class="form-control" rows="2" placeholder="Timing: 08:00 – 20:00"></textarea></div>
+          <div class="form-actions">
+            <button class="btn btn-primary" id="fac-submit-btn" onclick="submitFacility()"><i class="fa-solid fa-plus"></i> Add Facility</button>
+            <button class="btn btn-secondary" id="fac-cancel-btn" onclick="cancelFacilityEdit()" style="display:none;">Cancel</button>
+          </div>
+        </div>
+        <div id="facilities-admin-list"></div>
       </div>
     </div>
 
-    <!-- PRAYER -->
+    <!-- PRAYER (unchanged) -->
     <div id="tab-prayer" class="tab-pane">
       <div class="admin-card">
         <h3><i class="fa-solid fa-mosque"></i> Prayer Times</h3>
@@ -379,7 +490,7 @@
       </div>
     </div>
 
-    <!-- MENU -->
+    <!-- MENU (unchanged) -->
     <div id="tab-menu" class="tab-pane">
       <div class="admin-card">
         <h3><i class="fa-solid fa-utensils"></i> Dining Menu</h3>
@@ -394,8 +505,19 @@
     <div id="tab-transport" class="tab-pane">
       <div class="admin-card">
         <h3><i class="fa-solid fa-bus"></i> Transport Schedule</h3>
-        <button class="btn btn-primary" onclick="showAddTransport()"><i class="fa-solid fa-plus"></i> New Shuttle</button>
-        <div id="transport-admin-list" style="margin-top:16px;"></div>
+        <div class="form-section" id="transport-form">
+          <h4 id="transport-form-title">Add New Shuttle</h4>
+          <div class="form-row">
+            <div class="form-group"><label>Shuttle Name</label><input type="text" id="tr-name" class="form-control" placeholder="e.g. Weekend Town Run"></div>
+            <div class="form-group"><label>Route</label><input type="text" id="tr-route" class="form-control" placeholder="e.g. Camp → Ibri Town"></div>
+          </div>
+          <div class="form-group"><label>Time / Status</label><input type="text" id="tr-time" class="form-control" placeholder="e.g. Sat, 09:00"></div>
+          <div class="form-actions">
+            <button class="btn btn-primary" id="tr-submit-btn" onclick="submitTransport()"><i class="fa-solid fa-plus"></i> Add Shuttle</button>
+            <button class="btn btn-secondary" id="tr-cancel-btn" onclick="cancelTransportEdit()" style="display:none;">Cancel</button>
+          </div>
+        </div>
+        <div id="transport-admin-list"></div>
       </div>
     </div>
 
@@ -403,12 +525,32 @@
     <div id="tab-contacts" class="tab-pane">
       <div class="admin-card">
         <h3><i class="fa-solid fa-address-book"></i> Contacts</h3>
-        <button class="btn btn-primary" onclick="showAddContact()"><i class="fa-solid fa-plus"></i> New Contact</button>
-        <div id="contacts-admin-list" style="margin-top:16px;"></div>
+        <div class="form-section" id="contact-form">
+          <h4 id="contact-form-title">Add New Contact</h4>
+          <div class="form-row">
+            <div class="form-group"><label>Title</label><input type="text" id="ct-title" class="form-control" placeholder="e.g. Camp Reception"></div>
+            <div class="form-group"><label>Phone / Extension</label><input type="text" id="ct-phone" class="form-control" placeholder="e.g. 2402"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Subtitle</label><input type="text" id="ct-subtitle" class="form-control" placeholder="e.g. General Enquiries"></div>
+            <div class="form-group"><label>Category</label>
+              <select id="ct-category" class="form-control">
+                <option value="emergency">Emergency</option>
+                <option value="ops">Operations</option>
+                <option value="services">Camp Services</option>
+              </select>
+            </div>
+          </div>
+          <div class="form-actions">
+            <button class="btn btn-primary" id="ct-submit-btn" onclick="submitContact()"><i class="fa-solid fa-plus"></i> Add Contact</button>
+            <button class="btn btn-secondary" id="ct-cancel-btn" onclick="cancelContactEdit()" style="display:none;">Cancel</button>
+          </div>
+        </div>
+        <div id="contacts-admin-list"></div>
       </div>
     </div>
 
-    <!-- SETTINGS -->
+    <!-- SETTINGS (unchanged) -->
     <div id="tab-settings" class="tab-pane">
       <div class="admin-card">
         <h3><i class="fa-solid fa-sliders"></i> Site Settings</h3>
@@ -434,7 +576,6 @@
   const SUPABASE_URL = 'https://mywcoynuakmfafzgzlzr.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15d2NveW51YWttZmFmemd6bHpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY1NDc3MjUsImV4cCI6MjEwMjEyMzcyNX0.xLWIUEVq2y_90f__QYPaJyPN7KGMqvBT1RfuwC660Ng';
 
-  // No variable declaration for 'supabase' – we'll use window.supabaseClient directly
   if (!window.supabaseClient) {
     try {
       const lib = window.supabase || window.Supabase;
@@ -466,9 +607,13 @@
   const PRAYER_ORDER = ['Fajr','Dhuhr','Asr','Maghrib','Isha'];
   const DAYS = ['Sat','Sun','Mon','Tue','Wed','Thu','Fri'];
   const MEALS = ['Breakfast','Lunch','Dinner'];
+
+  // Edit states
   let editingAnnouncementId = null;
   let editingEventId = null;
   let editingFacilityId = null;
+  let editingTransportId = null;
+  let editingContactId = null;
 
   // ============================================================
   //  HELPERS
@@ -542,7 +687,6 @@
       const tab = li.dataset.tab;
       document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
       document.getElementById('tab-' + tab).classList.add('active');
-      // Refresh content on tab switch
       switch (tab) {
         case 'languages': loadLanguages(); break;
         case 'translations': loadTranslationsUI(); break;
@@ -560,7 +704,7 @@
   });
 
   // ============================================================
-  //  LOAD ALL DATA (initial)
+  //  LOAD ALL DATA
   // ============================================================
   async function loadAllData() {
     try {
@@ -597,7 +741,7 @@
   }
 
   // ============================================================
-  //  LANGUAGES CRUD (with edit)
+  //  LANGUAGES (unchanged)
   // ============================================================
   async function loadLanguages() {
     try {
@@ -620,7 +764,6 @@
           </div>
         </div>
       `).join('');
-      // Update language selectors
       document.querySelectorAll('.lang-select').forEach(sel => {
         const current = sel.dataset.lang || 'en';
         sel.innerHTML = languages.map(l => `<option value="${l.code}" ${l.code===current?'selected':''}>${l.name}</option>`).join('');
@@ -696,7 +839,7 @@
   }
 
   // ============================================================
-  //  STATIC TRANSLATIONS
+  //  STATIC TRANSLATIONS (unchanged)
   // ============================================================
   async function loadStaticKeys() {
     try {
@@ -728,7 +871,6 @@
           <input type="text" class="form-control" data-key="${key}" value="${map[key] || ''}" placeholder="Enter translation">
         </div>
       `).join('');
-      // Save button
       let saveBtn = container.querySelector('.save-trans-btn');
       if (!saveBtn) {
         saveBtn = document.createElement('button');
@@ -792,40 +934,52 @@
   }
 
   // ============================================================
-  //  ANNOUNCEMENTS (with edit & translation tabs)
+  //  ANNOUNCEMENTS – with form and translation toggle
   // ============================================================
+  let announcementsData = [];
+
   async function loadAnnouncementsAdmin() {
     try {
       const { data, error } = await window.supabaseClient.from('announcements').select('*').order('date', { ascending: false });
       if (error) throw error;
-      const container = document.getElementById('announcements-admin-list');
-      if (!data || data.length === 0) {
-        container.innerHTML = '<div class="empty-state">No announcements yet.</div>';
-        return;
-      }
-      container.innerHTML = data.map(a => `
-        <div class="admin-card" style="padding:12px;margin-bottom:10px;" data-id="${a.id}">
-          <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-            <div>
-              <strong>${a.title}</strong> <span style="color:var(--text-dim);font-size:0.7rem;">${a.date}</span>
-              <p style="font-size:0.8rem;color:var(--text-muted);margin-top:4px;">${a.description}</p>
-              <span style="font-size:0.7rem;color:var(--text-dim);"><i class="fa-solid fa-location-dot"></i> ${a.location}</span>
-            </div>
-            <div style="display:flex;gap:6px;">
-              <button class="btn btn-secondary btn-sm" onclick="editAnnouncement('${a.id}')"><i class="fa-solid fa-pen"></i></button>
-              <button class="btn btn-danger btn-sm" onclick="deleteAnnouncement('${a.id}')"><i class="fa-solid fa-trash"></i></button>
-            </div>
-          </div>
-          <div style="margin-top:8px;">
-            <div class="lang-tabs" id="ann-lang-tabs-${a.id}"></div>
-            <div id="ann-trans-fields-${a.id}"></div>
-          </div>
-        </div>
-      `).join('');
-      data.forEach(a => renderAnnouncementTranslations(a.id));
+      announcementsData = data || [];
+      renderAnnouncementsList();
     } catch (err) {
       toast('Error', 'Failed to load announcements: ' + err.message);
     }
+  }
+
+  function renderAnnouncementsList() {
+    const container = document.getElementById('announcements-admin-list');
+    if (!announcementsData || announcementsData.length === 0) {
+      container.innerHTML = '<div class="empty-state">No announcements yet.</div>';
+      return;
+    }
+    container.innerHTML = announcementsData.map(a => `
+      <div class="admin-item" data-id="${a.id}">
+        <div class="item-header">
+          <div>
+            <div class="item-title">${a.title}</div>
+            <div class="item-meta"><i class="fa-regular fa-calendar"></i> ${a.date} · <i class="fa-solid fa-location-dot"></i> ${a.location}</div>
+          </div>
+          <div class="item-actions">
+            <button class="btn btn-secondary btn-sm" onclick="editAnnouncement('${a.id}')"><i class="fa-solid fa-pen"></i> Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteAnnouncement('${a.id}')"><i class="fa-solid fa-trash"></i></button>
+            <button class="btn btn-secondary btn-sm translation-toggle-btn" onclick="toggleTranslations('ann','${a.id}')">
+              <i class="fa-solid fa-language"></i> <span>Show Translations</span>
+            </button>
+          </div>
+        </div>
+        <div class="item-desc">${a.description}</div>
+        <div class="translations-section" id="ann-trans-${a.id}">
+          <div class="lang-tabs" id="ann-lang-tabs-${a.id}"></div>
+          <div id="ann-trans-fields-${a.id}"></div>
+        </div>
+      </div>
+    `).join('');
+    announcementsData.forEach(a => {
+      renderAnnouncementTranslations(a.id);
+    });
   }
 
   function renderAnnouncementTranslations(id) {
@@ -885,30 +1039,68 @@
     loadAnnouncementTranslationFields(id, lang);
   }
 
-  async function editAnnouncement(id) {
-    const { data: a } = await window.supabaseClient.from('announcements').select('*').eq('id', id).single();
-    if (!a) return;
-    const newTitle = prompt('Title:', a.title);
-    if (newTitle === null) return;
-    const newDesc = prompt('Description:', a.description);
-    if (newDesc === null) return;
-    const newLoc = prompt('Location:', a.location);
-    if (newLoc === null) return;
-    try {
-      const { error } = await window.supabaseClient.from('announcements').update({ title: newTitle, description: newDesc, location: newLoc }).eq('id', id);
-      if (error) throw error;
-      toast('Updated', 'Announcement updated.');
-      loadAnnouncementsAdmin();
-    } catch (err) {
-      toast('Error', err.message);
+  function toggleTranslations(type, id) {
+    const section = document.getElementById(type + '-trans-' + id);
+    if (!section) return;
+    const isOpen = section.classList.contains('open');
+    section.classList.toggle('open');
+    const btn = section.closest('.admin-item').querySelector('.translation-toggle-btn span');
+    if (btn) btn.textContent = isOpen ? 'Show Translations' : 'Hide Translations';
+  }
+
+  function submitAnnouncement() {
+    const title = document.getElementById('ann-title').value.trim();
+    const desc = document.getElementById('ann-description').value.trim();
+    const location = document.getElementById('ann-location').value.trim() || 'Camp';
+    const date = document.getElementById('ann-date').value || new Date().toISOString().split('T')[0];
+    if (!title || !desc) { toast('Error', 'Title and description required.'); return; }
+
+    const submitBtn = document.getElementById('ann-submit-btn');
+    if (editingAnnouncementId) {
+      // Update
+      window.supabaseClient.from('announcements').update({ title, description: desc, location, date }).eq('id', editingAnnouncementId)
+        .then(() => { toast('Updated', 'Announcement updated.'); cancelAnnouncementEdit(); loadAnnouncementsAdmin(); })
+        .catch(err => toast('Error', err.message));
+    } else {
+      // Insert
+      window.supabaseClient.from('announcements').insert({ title, description: desc, location, date, translations: {} })
+        .then(() => { toast('Added', 'Announcement created.'); clearAnnouncementForm(); loadAnnouncementsAdmin(); })
+        .catch(err => toast('Error', err.message));
     }
+  }
+
+  function editAnnouncement(id) {
+    const a = announcementsData.find(item => item.id === id);
+    if (!a) return;
+    editingAnnouncementId = id;
+    document.getElementById('ann-title').value = a.title;
+    document.getElementById('ann-description').value = a.description;
+    document.getElementById('ann-location').value = a.location;
+    document.getElementById('ann-date').value = a.date;
+    document.getElementById('announcement-form-title').textContent = 'Edit Announcement';
+    document.getElementById('ann-submit-btn').innerHTML = '<i class="fa-solid fa-save"></i> Update Announcement';
+    document.getElementById('ann-cancel-btn').style.display = 'inline-flex';
+  }
+
+  function cancelAnnouncementEdit() {
+    editingAnnouncementId = null;
+    clearAnnouncementForm();
+    document.getElementById('announcement-form-title').textContent = 'Add New Announcement';
+    document.getElementById('ann-submit-btn').innerHTML = '<i class="fa-solid fa-plus"></i> Add Announcement';
+    document.getElementById('ann-cancel-btn').style.display = 'none';
+  }
+
+  function clearAnnouncementForm() {
+    document.getElementById('ann-title').value = '';
+    document.getElementById('ann-description').value = '';
+    document.getElementById('ann-location').value = '';
+    document.getElementById('ann-date').value = '';
   }
 
   async function deleteAnnouncement(id) {
     if (!confirm('Delete this announcement?')) return;
     try {
-      const { error } = await window.supabaseClient.from('announcements').delete().eq('id', id);
-      if (error) throw error;
+      await window.supabaseClient.from('announcements').delete().eq('id', id);
       loadAnnouncementsAdmin();
       toast('Deleted', 'Announcement removed.');
     } catch (err) {
@@ -916,48 +1108,50 @@
     }
   }
 
-  function showAddAnnouncement() {
-    const title = prompt('Title:');
-    if (title === null) return;
-    const desc = prompt('Description:');
-    if (desc === null) return;
-    const loc = prompt('Location:') || 'Camp';
-    const date = new Date().toISOString().split('T')[0];
-    window.supabaseClient.from('announcements').insert({ title, description: desc, location: loc, date, translations: {} })
-      .then(() => { loadAnnouncementsAdmin(); toast('Added', 'Announcement created.'); })
-      .catch(err => toast('Error', err.message));
-  }
+  // ============================================================
+  //  EVENTS – with form and translation toggle
+  // ============================================================
+  let eventsData = [];
 
-  // ============================================================
-  //  EVENTS (similar to announcements – edit + translations)
-  // ============================================================
   async function loadEventsAdmin() {
     try {
       const { data, error } = await window.supabaseClient.from('events').select('*').order('timeVal', { ascending: true });
       if (error) throw error;
-      const container = document.getElementById('events-admin-list');
-      if (!data || data.length === 0) { container.innerHTML = '<div class="empty-state">No events.</div>'; return; }
-      container.innerHTML = data.map(e => `
-        <div class="admin-card" style="padding:12px;margin-bottom:10px;" data-id="${e.id}">
-          <div style="display:flex;justify-content:space-between;">
-            <div><strong>${e.title}</strong> <span style="color:var(--text-dim);font-size:0.7rem;">${e.category}</span><br>
-              <span style="font-size:0.8rem;color:var(--text-muted);">${e.date} · ${e.location}</span>
-            </div>
-            <div>
-              <button class="btn btn-secondary btn-sm" onclick="editEvent('${e.id}')"><i class="fa-solid fa-pen"></i></button>
-              <button class="btn btn-danger btn-sm" onclick="deleteEvent('${e.id}')"><i class="fa-solid fa-trash"></i></button>
-            </div>
-          </div>
-          <div style="margin-top:8px;">
-            <div class="lang-tabs" id="ev-lang-tabs-${e.id}"></div>
-            <div id="ev-trans-fields-${e.id}"></div>
-          </div>
-        </div>
-      `).join('');
-      data.forEach(e => renderEventTranslations(e.id));
+      eventsData = data || [];
+      renderEventsList();
     } catch (err) {
       toast('Error', 'Failed to load events: ' + err.message);
     }
+  }
+
+  function renderEventsList() {
+    const container = document.getElementById('events-admin-list');
+    if (!eventsData || eventsData.length === 0) {
+      container.innerHTML = '<div class="empty-state">No events.</div>';
+      return;
+    }
+    container.innerHTML = eventsData.map(e => `
+      <div class="admin-item" data-id="${e.id}">
+        <div class="item-header">
+          <div>
+            <div class="item-title">${e.title}</div>
+            <div class="item-meta"><span style="color:var(--text-dim);">${e.category}</span> · ${e.date} · <i class="fa-solid fa-location-dot"></i> ${e.location}</div>
+          </div>
+          <div class="item-actions">
+            <button class="btn btn-secondary btn-sm" onclick="editEvent('${e.id}')"><i class="fa-solid fa-pen"></i> Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteEvent('${e.id}')"><i class="fa-solid fa-trash"></i></button>
+            <button class="btn btn-secondary btn-sm translation-toggle-btn" onclick="toggleTranslations('ev','${e.id}')">
+              <i class="fa-solid fa-language"></i> <span>Show Translations</span>
+            </button>
+          </div>
+        </div>
+        <div class="translations-section" id="ev-trans-${e.id}">
+          <div class="lang-tabs" id="ev-lang-tabs-${e.id}"></div>
+          <div id="ev-trans-fields-${e.id}"></div>
+        </div>
+      </div>
+    `).join('');
+    eventsData.forEach(e => renderEventTranslations(e.id));
   }
 
   function renderEventTranslations(id) {
@@ -1017,25 +1211,51 @@
     loadEventTranslationFields(id, lang);
   }
 
-  async function editEvent(id) {
-    const { data: e } = await window.supabaseClient.from('events').select('*').eq('id', id).single();
-    if (!e) return;
-    const newTitle = prompt('Title:', e.title);
-    if (newTitle === null) return;
-    const newCat = prompt('Category:', e.category);
-    if (newCat === null) return;
-    const newDate = prompt('Date & time:', e.date);
-    if (newDate === null) return;
-    const newLoc = prompt('Location:', e.location);
-    if (newLoc === null) return;
-    try {
-      const { error } = await window.supabaseClient.from('events').update({ title: newTitle, category: newCat, date: newDate, location: newLoc }).eq('id', id);
-      if (error) throw error;
-      toast('Updated', 'Event updated.');
-      loadEventsAdmin();
-    } catch (err) {
-      toast('Error', err.message);
+  function submitEvent() {
+    const title = document.getElementById('ev-title').value.trim();
+    const category = document.getElementById('ev-category').value.trim() || 'Community';
+    const date = document.getElementById('ev-date').value.trim();
+    const location = document.getElementById('ev-location').value.trim();
+    if (!title || !date || !location) { toast('Error', 'Title, date/time, and location required.'); return; }
+
+    const timeVal = Date.now() + 86400000;
+    if (editingEventId) {
+      window.supabaseClient.from('events').update({ title, category, date, location }).eq('id', editingEventId)
+        .then(() => { toast('Updated', 'Event updated.'); cancelEventEdit(); loadEventsAdmin(); })
+        .catch(err => toast('Error', err.message));
+    } else {
+      window.supabaseClient.from('events').insert({ title, category, date, location, timeVal, icon: 'fa-calendar-days', live: false, translations: {} })
+        .then(() => { toast('Added', 'Event created.'); clearEventForm(); loadEventsAdmin(); })
+        .catch(err => toast('Error', err.message));
     }
+  }
+
+  function editEvent(id) {
+    const e = eventsData.find(item => item.id === id);
+    if (!e) return;
+    editingEventId = id;
+    document.getElementById('ev-title').value = e.title;
+    document.getElementById('ev-category').value = e.category;
+    document.getElementById('ev-date').value = e.date;
+    document.getElementById('ev-location').value = e.location;
+    document.getElementById('event-form-title').textContent = 'Edit Event';
+    document.getElementById('ev-submit-btn').innerHTML = '<i class="fa-solid fa-save"></i> Update Event';
+    document.getElementById('ev-cancel-btn').style.display = 'inline-flex';
+  }
+
+  function cancelEventEdit() {
+    editingEventId = null;
+    clearEventForm();
+    document.getElementById('event-form-title').textContent = 'Add New Event';
+    document.getElementById('ev-submit-btn').innerHTML = '<i class="fa-solid fa-plus"></i> Add Event';
+    document.getElementById('ev-cancel-btn').style.display = 'none';
+  }
+
+  function clearEventForm() {
+    document.getElementById('ev-title').value = '';
+    document.getElementById('ev-category').value = '';
+    document.getElementById('ev-date').value = '';
+    document.getElementById('ev-location').value = '';
   }
 
   async function deleteEvent(id) {
@@ -1049,50 +1269,50 @@
     }
   }
 
-  function showAddEvent() {
-    const title = prompt('Title:');
-    if (!title) return;
-    const category = prompt('Category:') || 'Community';
-    const date = prompt('Date & time (e.g. "Today, 19:30"):');
-    if (!date) return;
-    const location = prompt('Location:');
-    if (!location) return;
-    const timeVal = Date.now() + 86400000;
-    window.supabaseClient.from('events').insert({ title, category, date, location, timeVal, icon: 'fa-calendar-days', live: false, translations: {} })
-      .then(() => { loadEventsAdmin(); toast('Added', 'Event created.'); })
-      .catch(err => toast('Error', err.message));
-  }
+  // ============================================================
+  //  FACILITIES – with form and translation toggle
+  // ============================================================
+  let facilitiesData = [];
 
-  // ============================================================
-  //  FACILITIES (with edit & translations)
-  // ============================================================
   async function loadFacilitiesAdmin() {
     try {
       const { data, error } = await window.supabaseClient.from('facilities').select('*');
       if (error) throw error;
-      const container = document.getElementById('facilities-admin-list');
-      if (!data || data.length === 0) { container.innerHTML = '<div class="empty-state">No facilities.</div>'; return; }
-      container.innerHTML = data.map(f => `
-        <div class="admin-card" style="padding:12px;margin-bottom:10px;" data-id="${f.id}">
-          <div style="display:flex;justify-content:space-between;">
-            <div><strong><i class="fa-solid ${f.icon}"></i> ${f.name}</strong><br>
-              <span style="font-size:0.8rem;color:var(--text-muted);">${f.info}</span>
-            </div>
-            <div>
-              <button class="btn btn-secondary btn-sm" onclick="editFacility('${f.id}')"><i class="fa-solid fa-pen"></i></button>
-              <button class="btn btn-danger btn-sm" onclick="deleteFacility('${f.id}')"><i class="fa-solid fa-trash"></i></button>
-            </div>
-          </div>
-          <div style="margin-top:8px;">
-            <div class="lang-tabs" id="fac-lang-tabs-${f.id}"></div>
-            <div id="fac-trans-fields-${f.id}"></div>
-          </div>
-        </div>
-      `).join('');
-      data.forEach(f => renderFacilityTranslations(f.id));
+      facilitiesData = data || [];
+      renderFacilitiesList();
     } catch (err) {
       toast('Error', 'Failed to load facilities: ' + err.message);
     }
+  }
+
+  function renderFacilitiesList() {
+    const container = document.getElementById('facilities-admin-list');
+    if (!facilitiesData || facilitiesData.length === 0) {
+      container.innerHTML = '<div class="empty-state">No facilities.</div>';
+      return;
+    }
+    container.innerHTML = facilitiesData.map(f => `
+      <div class="admin-item" data-id="${f.id}">
+        <div class="item-header">
+          <div>
+            <div class="item-title"><i class="fa-solid ${f.icon}"></i> ${f.name}</div>
+            <div class="item-meta">${f.info}</div>
+          </div>
+          <div class="item-actions">
+            <button class="btn btn-secondary btn-sm" onclick="editFacility('${f.id}')"><i class="fa-solid fa-pen"></i> Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteFacility('${f.id}')"><i class="fa-solid fa-trash"></i></button>
+            <button class="btn btn-secondary btn-sm translation-toggle-btn" onclick="toggleTranslations('fac','${f.id}')">
+              <i class="fa-solid fa-language"></i> <span>Show Translations</span>
+            </button>
+          </div>
+        </div>
+        <div class="translations-section" id="fac-trans-${f.id}">
+          <div class="lang-tabs" id="fac-lang-tabs-${f.id}"></div>
+          <div id="fac-trans-fields-${f.id}"></div>
+        </div>
+      </div>
+    `).join('');
+    facilitiesData.forEach(f => renderFacilityTranslations(f.id));
   }
 
   function renderFacilityTranslations(id) {
@@ -1152,21 +1372,54 @@
     loadFacilityTranslationFields(id, lang);
   }
 
-  async function editFacility(id) {
-    const { data: f } = await window.supabaseClient.from('facilities').select('*').eq('id', id).single();
-    if (!f) return;
-    const newName = prompt('Name:', f.name);
-    if (newName === null) return;
-    const newInfo = prompt('Info:', f.info);
-    if (newInfo === null) return;
-    try {
-      const { error } = await window.supabaseClient.from('facilities').update({ name: newName, info: newInfo }).eq('id', id);
-      if (error) throw error;
-      toast('Updated', 'Facility updated.');
-      loadFacilitiesAdmin();
-    } catch (err) {
-      toast('Error', err.message);
+  function submitFacility() {
+    const name = document.getElementById('fac-name').value.trim();
+    const icon = document.getElementById('fac-icon').value.trim() || 'fa-utensils';
+    const info = document.getElementById('fac-info').value.trim();
+    const lat = parseFloat(document.getElementById('fac-lat').value) || 22.8750;
+    const lng = parseFloat(document.getElementById('fac-lng').value) || 55.3700;
+    if (!name || !info) { toast('Error', 'Name and info required.'); return; }
+
+    if (editingFacilityId) {
+      window.supabaseClient.from('facilities').update({ name, icon, info, lat, lng }).eq('id', editingFacilityId)
+        .then(() => { toast('Updated', 'Facility updated.'); cancelFacilityEdit(); loadFacilitiesAdmin(); })
+        .catch(err => toast('Error', err.message));
+    } else {
+      const color = ['#ff7a1a','#f0453d','#2dd4bf','#c9a876','#3b82f6','#a78bfa'][facilitiesData.length % 6];
+      window.supabaseClient.from('facilities').insert({ name, icon, info, lat, lng, color, translations: {} })
+        .then(() => { toast('Added', 'Facility created.'); clearFacilityForm(); loadFacilitiesAdmin(); })
+        .catch(err => toast('Error', err.message));
     }
+  }
+
+  function editFacility(id) {
+    const f = facilitiesData.find(item => item.id === id);
+    if (!f) return;
+    editingFacilityId = id;
+    document.getElementById('fac-name').value = f.name;
+    document.getElementById('fac-icon').value = f.icon;
+    document.getElementById('fac-info').value = f.info;
+    document.getElementById('fac-lat').value = f.lat;
+    document.getElementById('fac-lng').value = f.lng;
+    document.getElementById('facility-form-title').textContent = 'Edit Facility';
+    document.getElementById('fac-submit-btn').innerHTML = '<i class="fa-solid fa-save"></i> Update Facility';
+    document.getElementById('fac-cancel-btn').style.display = 'inline-flex';
+  }
+
+  function cancelFacilityEdit() {
+    editingFacilityId = null;
+    clearFacilityForm();
+    document.getElementById('facility-form-title').textContent = 'Add New Facility';
+    document.getElementById('fac-submit-btn').innerHTML = '<i class="fa-solid fa-plus"></i> Add Facility';
+    document.getElementById('fac-cancel-btn').style.display = 'none';
+  }
+
+  function clearFacilityForm() {
+    document.getElementById('fac-name').value = '';
+    document.getElementById('fac-icon').value = '';
+    document.getElementById('fac-info').value = '';
+    document.getElementById('fac-lat').value = '';
+    document.getElementById('fac-lng').value = '';
   }
 
   async function deleteFacility(id) {
@@ -1180,22 +1433,8 @@
     }
   }
 
-  function showAddFacility() {
-    const name = prompt('Facility name:');
-    if (!name) return;
-    const info = prompt('Info (e.g. "Timing: 08:00 – 20:00"):');
-    if (!info) return;
-    const lat = parseFloat(prompt('Latitude:') || '22.8750');
-    const lng = parseFloat(prompt('Longitude:') || '55.3700');
-    const icon = 'fa-utensils';
-    const color = '#ff7a1a';
-    window.supabaseClient.from('facilities').insert({ name, info, lat, lng, icon, color, translations: {} })
-      .then(() => { loadFacilitiesAdmin(); toast('Added', 'Facility created.'); })
-      .catch(err => toast('Error', err.message));
-  }
-
   // ============================================================
-  //  PRAYER TIMES (auto-fetch on tab open)
+  //  PRAYER TIMES (unchanged)
   // ============================================================
   async function loadPrayerAdmin() {
     try {
@@ -1203,7 +1442,6 @@
       if (error) throw error;
       prayerTimes = data || [];
       renderPrayerAdmin();
-      // Auto-fetch when tab is opened
       const statusDiv = document.getElementById('prayer-fetch-status');
       statusDiv.textContent = '⏳ Auto‑fetching prayer times from MARA Worker...';
       await fetchPrayerTimesWorker(true);
@@ -1277,14 +1515,7 @@
           const dateStr = cols[0].textContent.trim();
           const dayMatch = dateStr.match(/\b\d{1,2}\b/);
           if (dayMatch && parseInt(dayMatch[0]) === day) {
-            const times = [
-              cols[1].textContent.trim(),
-              cols[2].textContent.trim(),
-              cols[3].textContent.trim(),
-              cols[4].textContent.trim(),
-              cols[5].textContent.trim(),
-              cols[6].textContent.trim()
-            ];
+            const times = [cols[1].textContent.trim(), cols[2].textContent.trim(), cols[3].textContent.trim(), cols[4].textContent.trim(), cols[5].textContent.trim(), cols[6].textContent.trim()];
             const map = { Fajr: 0, Dhuhr: 2, Asr: 3, Maghrib: 4, Isha: 5 };
             Object.keys(map).forEach(name => {
               const idx2 = map[name];
@@ -1300,7 +1531,6 @@
         }
       });
       if (!found) throw new Error('Could not find today\'s row');
-      // Update database
       for (const p of prayerTimes) {
         await window.supabaseClient.from('prayer_times').update({ adhan_time: p.adhan_time }).eq('id', p.id);
       }
@@ -1313,7 +1543,7 @@
   }
 
   // ============================================================
-  //  MENU (same as before)
+  //  MENU (unchanged)
   // ============================================================
   let menuData = {};
   async function loadMenuAdmin() {
@@ -1385,47 +1615,84 @@
   }
 
   // ============================================================
-  //  TRANSPORT (with edit)
+  //  TRANSPORT – with form
   // ============================================================
+  let transportData = [];
+
   async function loadTransportAdmin() {
     try {
       const { data, error } = await window.supabaseClient.from('transport').select('*');
       if (error) throw error;
-      const container = document.getElementById('transport-admin-list');
-      if (!data || data.length === 0) { container.innerHTML = '<div class="empty-state">No shuttles.</div>'; return; }
-      container.innerHTML = data.map(t => `
-        <div class="admin-card" style="padding:12px;margin-bottom:8px;">
-          <div style="display:flex;justify-content:space-between;">
-            <div><strong>${t.name}</strong><br><span style="font-size:0.8rem;color:var(--text-muted);">${t.route} · ${t.time}</span></div>
-            <div>
-              <button class="btn btn-secondary btn-sm" onclick="editTransport('${t.id}')"><i class="fa-solid fa-pen"></i></button>
-              <button class="btn btn-danger btn-sm" onclick="deleteTransport('${t.id}')"><i class="fa-solid fa-trash"></i></button>
-            </div>
-          </div>
-        </div>
-      `).join('');
+      transportData = data || [];
+      renderTransportList();
     } catch (err) {
       toast('Error', 'Failed to load transport: ' + err.message);
     }
   }
 
-  async function editTransport(id) {
-    const { data: t } = await window.supabaseClient.from('transport').select('*').eq('id', id).single();
-    if (!t) return;
-    const newName = prompt('Shuttle name:', t.name);
-    if (newName === null) return;
-    const newRoute = prompt('Route:', t.route);
-    if (newRoute === null) return;
-    const newTime = prompt('Time/status:', t.time);
-    if (newTime === null) return;
-    try {
-      const { error } = await window.supabaseClient.from('transport').update({ name: newName, route: newRoute, time: newTime }).eq('id', id);
-      if (error) throw error;
-      toast('Updated', 'Shuttle updated.');
-      loadTransportAdmin();
-    } catch (err) {
-      toast('Error', err.message);
+  function renderTransportList() {
+    const container = document.getElementById('transport-admin-list');
+    if (!transportData || transportData.length === 0) {
+      container.innerHTML = '<div class="empty-state">No shuttles.</div>';
+      return;
     }
+    container.innerHTML = transportData.map(t => `
+      <div class="admin-item" data-id="${t.id}">
+        <div class="item-header">
+          <div>
+            <div class="item-title">${t.name}</div>
+            <div class="item-meta">${t.route} · ${t.time}</div>
+          </div>
+          <div class="item-actions">
+            <button class="btn btn-secondary btn-sm" onclick="editTransport('${t.id}')"><i class="fa-solid fa-pen"></i> Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteTransport('${t.id}')"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function submitTransport() {
+    const name = document.getElementById('tr-name').value.trim();
+    const route = document.getElementById('tr-route').value.trim();
+    const time = document.getElementById('tr-time').value.trim();
+    if (!name || !route || !time) { toast('Error', 'All fields required.'); return; }
+
+    if (editingTransportId) {
+      window.supabaseClient.from('transport').update({ name, route, time }).eq('id', editingTransportId)
+        .then(() => { toast('Updated', 'Shuttle updated.'); cancelTransportEdit(); loadTransportAdmin(); })
+        .catch(err => toast('Error', err.message));
+    } else {
+      window.supabaseClient.from('transport').insert({ name, route, time, status: 'scheduled', translations: {} })
+        .then(() => { toast('Added', 'Shuttle created.'); clearTransportForm(); loadTransportAdmin(); })
+        .catch(err => toast('Error', err.message));
+    }
+  }
+
+  function editTransport(id) {
+    const t = transportData.find(item => item.id === id);
+    if (!t) return;
+    editingTransportId = id;
+    document.getElementById('tr-name').value = t.name;
+    document.getElementById('tr-route').value = t.route;
+    document.getElementById('tr-time').value = t.time;
+    document.getElementById('transport-form-title').textContent = 'Edit Shuttle';
+    document.getElementById('tr-submit-btn').innerHTML = '<i class="fa-solid fa-save"></i> Update Shuttle';
+    document.getElementById('tr-cancel-btn').style.display = 'inline-flex';
+  }
+
+  function cancelTransportEdit() {
+    editingTransportId = null;
+    clearTransportForm();
+    document.getElementById('transport-form-title').textContent = 'Add New Shuttle';
+    document.getElementById('tr-submit-btn').innerHTML = '<i class="fa-solid fa-plus"></i> Add Shuttle';
+    document.getElementById('tr-cancel-btn').style.display = 'none';
+  }
+
+  function clearTransportForm() {
+    document.getElementById('tr-name').value = '';
+    document.getElementById('tr-route').value = '';
+    document.getElementById('tr-time').value = '';
   }
 
   async function deleteTransport(id) {
@@ -1439,64 +1706,88 @@
     }
   }
 
-  function showAddTransport() {
-    const name = prompt('Shuttle name:');
-    if (!name) return;
-    const route = prompt('Route:');
-    if (!route) return;
-    const time = prompt('Time/status:');
-    if (!time) return;
-    window.supabaseClient.from('transport').insert({ name, route, time, status: 'scheduled', translations: {} })
-      .then(() => { loadTransportAdmin(); toast('Added', 'Shuttle created.'); })
-      .catch(err => toast('Error', err.message));
-  }
+  // ============================================================
+  //  CONTACTS – with form
+  // ============================================================
+  let contactsData = [];
 
-  // ============================================================
-  //  CONTACTS (with edit)
-  // ============================================================
   async function loadContactsAdmin() {
     try {
       const { data, error } = await window.supabaseClient.from('contacts').select('*');
       if (error) throw error;
-      const container = document.getElementById('contacts-admin-list');
-      if (!data || data.length === 0) { container.innerHTML = '<div class="empty-state">No contacts.</div>'; return; }
-      container.innerHTML = data.map(c => `
-        <div class="admin-card" style="padding:12px;margin-bottom:8px;">
-          <div style="display:flex;justify-content:space-between;">
-            <div><strong>${c.title}</strong> <span style="color:var(--text-dim);font-size:0.7rem;">${c.category}</span><br>
-              <span style="font-size:0.8rem;color:var(--text-muted);">${c.subtitle} · ${c.phone}</span>
-            </div>
-            <div>
-              <button class="btn btn-secondary btn-sm" onclick="editContact('${c.id}')"><i class="fa-solid fa-pen"></i></button>
-              <button class="btn btn-danger btn-sm" onclick="deleteContact('${c.id}')"><i class="fa-solid fa-trash"></i></button>
-            </div>
-          </div>
-        </div>
-      `).join('');
+      contactsData = data || [];
+      renderContactsList();
     } catch (err) {
       toast('Error', 'Failed to load contacts: ' + err.message);
     }
   }
 
-  async function editContact(id) {
-    const { data: c } = await window.supabaseClient.from('contacts').select('*').eq('id', id).single();
-    if (!c) return;
-    const newTitle = prompt('Title:', c.title);
-    if (newTitle === null) return;
-    const newPhone = prompt('Phone/extension:', c.phone);
-    if (newPhone === null) return;
-    const newSub = prompt('Subtitle:', c.subtitle);
-    if (newSub === null) return;
-    const newCat = prompt('Category (emergency/ops/services):', c.category);
-    if (newCat === null) return;
-    try {
-      const { error } = await window.supabaseClient.from('contacts').update({ title: newTitle, phone: newPhone, subtitle: newSub, category: newCat }).eq('id', id);
-      if (error) throw error;
-      toast('Updated', 'Contact updated.');
-      loadContactsAdmin();
-    } catch (err) {
-      toast('Error', err.message);
+  function renderContactsList() {
+    const container = document.getElementById('contacts-admin-list');
+    if (!contactsData || contactsData.length === 0) {
+      container.innerHTML = '<div class="empty-state">No contacts.</div>';
+      return;
     }
+    container.innerHTML = contactsData.map(c => `
+      <div class="admin-item" data-id="${c.id}">
+        <div class="item-header">
+          <div>
+            <div class="item-title">${c.title}</div>
+            <div class="item-meta"><span style="color:var(--text-dim);">${c.category}</span> · ${c.subtitle} · ${c.phone}</div>
+          </div>
+          <div class="item-actions">
+            <button class="btn btn-secondary btn-sm" onclick="editContact('${c.id}')"><i class="fa-solid fa-pen"></i> Edit</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteContact('${c.id}')"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function submitContact() {
+    const title = document.getElementById('ct-title').value.trim();
+    const phone = document.getElementById('ct-phone').value.trim();
+    const subtitle = document.getElementById('ct-subtitle').value.trim() || '';
+    const category = document.getElementById('ct-category').value;
+    if (!title || !phone) { toast('Error', 'Title and phone required.'); return; }
+
+    if (editingContactId) {
+      window.supabaseClient.from('contacts').update({ title, phone, subtitle, category }).eq('id', editingContactId)
+        .then(() => { toast('Updated', 'Contact updated.'); cancelContactEdit(); loadContactsAdmin(); })
+        .catch(err => toast('Error', err.message));
+    } else {
+      window.supabaseClient.from('contacts').insert({ title, phone, subtitle, category, translations: {} })
+        .then(() => { toast('Added', 'Contact created.'); clearContactForm(); loadContactsAdmin(); })
+        .catch(err => toast('Error', err.message));
+    }
+  }
+
+  function editContact(id) {
+    const c = contactsData.find(item => item.id === id);
+    if (!c) return;
+    editingContactId = id;
+    document.getElementById('ct-title').value = c.title;
+    document.getElementById('ct-phone').value = c.phone;
+    document.getElementById('ct-subtitle').value = c.subtitle || '';
+    document.getElementById('ct-category').value = c.category;
+    document.getElementById('contact-form-title').textContent = 'Edit Contact';
+    document.getElementById('ct-submit-btn').innerHTML = '<i class="fa-solid fa-save"></i> Update Contact';
+    document.getElementById('ct-cancel-btn').style.display = 'inline-flex';
+  }
+
+  function cancelContactEdit() {
+    editingContactId = null;
+    clearContactForm();
+    document.getElementById('contact-form-title').textContent = 'Add New Contact';
+    document.getElementById('ct-submit-btn').innerHTML = '<i class="fa-solid fa-plus"></i> Add Contact';
+    document.getElementById('ct-cancel-btn').style.display = 'none';
+  }
+
+  function clearContactForm() {
+    document.getElementById('ct-title').value = '';
+    document.getElementById('ct-phone').value = '';
+    document.getElementById('ct-subtitle').value = '';
+    document.getElementById('ct-category').value = 'services';
   }
 
   async function deleteContact(id) {
@@ -1510,20 +1801,8 @@
     }
   }
 
-  function showAddContact() {
-    const title = prompt('Title:');
-    if (!title) return;
-    const phone = prompt('Phone/extension:');
-    if (!phone) return;
-    const subtitle = prompt('Subtitle:') || '';
-    const category = prompt('Category (emergency/ops/services):') || 'services';
-    window.supabaseClient.from('contacts').insert({ title, phone, subtitle, category, translations: {} })
-      .then(() => { loadContactsAdmin(); toast('Added', 'Contact created.'); })
-      .catch(err => toast('Error', err.message));
-  }
-
   // ============================================================
-  //  SETTINGS
+  //  SETTINGS (unchanged)
   // ============================================================
   async function loadSettings() {
     try {
@@ -1574,6 +1853,18 @@
   }
 
   // ============================================================
+  //  TOGGLE TRANSLATIONS (global function)
+  // ============================================================
+  window.toggleTranslations = function(type, id) {
+    const section = document.getElementById(type + '-trans-' + id);
+    if (!section) return;
+    const isOpen = section.classList.contains('open');
+    section.classList.toggle('open');
+    const btn = section.closest('.admin-item').querySelector('.translation-toggle-btn span');
+    if (btn) btn.textContent = isOpen ? 'Show Translations' : 'Hide Translations';
+  };
+
+  // ============================================================
   //  INIT
   // ============================================================
   document.addEventListener('DOMContentLoaded', checkSession);
@@ -1585,28 +1876,33 @@
   window.saveLanguageEdit = saveLanguageEdit;
   window.autoTranslateStatic = autoTranslateStatic;
   window.addNewTranslationKey = addNewTranslationKey;
-  window.showAddAnnouncement = showAddAnnouncement;
-  window.deleteAnnouncement = deleteAnnouncement;
+  window.submitAnnouncement = submitAnnouncement;
   window.editAnnouncement = editAnnouncement;
+  window.cancelAnnouncementEdit = cancelAnnouncementEdit;
+  window.deleteAnnouncement = deleteAnnouncement;
   window.switchAnnouncementLang = switchAnnouncementLang;
-  window.showAddEvent = showAddEvent;
-  window.deleteEvent = deleteEvent;
+  window.submitEvent = submitEvent;
   window.editEvent = editEvent;
+  window.cancelEventEdit = cancelEventEdit;
+  window.deleteEvent = deleteEvent;
   window.switchEventLang = switchEventLang;
-  window.showAddFacility = showAddFacility;
-  window.deleteFacility = deleteFacility;
+  window.submitFacility = submitFacility;
   window.editFacility = editFacility;
+  window.cancelFacilityEdit = cancelFacilityEdit;
+  window.deleteFacility = deleteFacility;
   window.switchFacilityLang = switchFacilityLang;
   window.savePrayerTimes = savePrayerTimes;
   window.fetchPrayerTimesWorker = fetchPrayerTimesWorker;
   window.setAdminDay = setAdminDay;
   window.saveMenuDay = saveMenuDay;
-  window.showAddTransport = showAddTransport;
-  window.deleteTransport = deleteTransport;
+  window.submitTransport = submitTransport;
   window.editTransport = editTransport;
-  window.showAddContact = showAddContact;
-  window.deleteContact = deleteContact;
+  window.cancelTransportEdit = cancelTransportEdit;
+  window.deleteTransport = deleteTransport;
+  window.submitContact = submitContact;
   window.editContact = editContact;
+  window.cancelContactEdit = cancelContactEdit;
+  window.deleteContact = deleteContact;
   window.saveSettings = saveSettings;
   window.login = login;
   window.logout = logout;
