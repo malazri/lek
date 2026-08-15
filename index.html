@@ -7,11 +7,10 @@
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <link href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
-  <!-- Leaflet & Supabase -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
-    /* ===== All base styles from original (unchanged) ===== */
+    /* ===== ALL STYLES (same as before, fully included) ===== */
     :root {
       --bg: #0a0d13;
       --surface: #121826;
@@ -82,7 +81,6 @@
     }
     .reception-tag { display: none; align-items: center; gap: 6px; background: var(--teal-soft); border: 1px solid rgba(45,212,191,0.35); color: var(--teal); padding: 5px 11px; border-radius: 20px; font-size: 0.68rem; font-weight: 700; letter-spacing: 0.03em; text-transform: uppercase; }
 
-    /* Header */
     .top-bar { padding: 18px 18px 10px; z-index: 10; flex-shrink: 0; }
     .header-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
     .header-row h1 { font-family: var(--font-display); font-size: 1.34rem; font-weight: 700; letter-spacing: -0.01em; }
@@ -271,7 +269,6 @@
     .nav-btn.active { color: var(--amber); }
     .nav-btn.active::before { content: ""; position: absolute; top: -9px; left: 50%; transform: translateX(-50%); width: 16px; height: 2px; background: var(--amber); border-radius: 2px; }
 
-    /* Responsive tweaks */
     @media (max-width: 412px) {
       .app-shell { border-radius: 0; max-height: none; box-shadow: none; border: none; }
     }
@@ -471,32 +468,33 @@
 
 <script>
   // ============================================================
-  //  SUPABASE CONFIGURATION – REPLACE WITH YOUR OWN
+  //  SUPABASE CONFIGURATION
   // ============================================================
   const SUPABASE_URL = 'https://mywcoynuakmfafzgzlzr.supabase.co';
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im15d2NveW51YWttZmFmemd6bHpyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODY1NDc3MjUsImV4cCI6MjEwMjEyMzcyNX0.xLWIUEVq2y_90f__QYPaJyPN7KGMqvBT1RfuwC660Ng';
 
   // ============================================================
-  //  SAFE SUPABASE CLIENT INITIALISATION
+  //  INITIALISE SUPABASE CLIENT – NO LOCAL VARIABLE DECLARATION
   // ============================================================
-  let supabase;
-  try {
-    const lib = window.supabase || window.Supabase;
-    if (!lib || typeof lib.createClient !== 'function') {
-      throw new Error('Supabase library not loaded');
-    }
-    supabase = lib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-  } catch (err) {
-    document.body.innerHTML = `
-      <div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0a0d13;color:#f5f3ec;font-family:Inter,sans-serif;text-align:center;padding:20px;">
-        <div>
-          <h1 style="font-size:1.8rem;margin-bottom:16px;">⚠️ Error</h1>
-          <p style="font-size:1rem;color:#8d93a6;max-width:400px;margin:0 auto;">${err.message}</p>
-          <button onclick="location.reload()" style="margin-top:20px;padding:12px 28px;background:#ff7a1a;border:none;border-radius:12px;color:#1a0d02;font-weight:700;font-size:1rem;cursor:pointer;">Reload</button>
+  if (!window.supabaseClient) {
+    try {
+      const lib = window.supabase || window.Supabase;
+      if (!lib || typeof lib.createClient !== 'function') {
+        throw new Error('Supabase library not loaded');
+      }
+      window.supabaseClient = lib.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    } catch (err) {
+      document.body.innerHTML = `
+        <div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#0a0d13;color:#f5f3ec;font-family:Inter,sans-serif;text-align:center;padding:20px;">
+          <div>
+            <h1 style="font-size:1.8rem;margin-bottom:16px;">⚠️ Error</h1>
+            <p style="font-size:1rem;color:#8d93a6;max-width:400px;margin:0 auto;">${err.message}</p>
+            <button onclick="location.reload()" style="margin-top:20px;padding:12px 28px;background:#ff7a1a;border:none;border-radius:12px;color:#1a0d02;font-weight:700;font-size:1rem;cursor:pointer;">Reload</button>
+          </div>
         </div>
-      </div>
-    `;
-    throw err;
+      `;
+      throw err;
+    }
   }
 
   // ============================================================
@@ -506,7 +504,7 @@
   let staticTranslations = {};
   let languages = [];
   let campSettings = {};
-  let prayerTimesData = [];
+  let prayerTimesData = [];     // <-- initialised as empty array
   let announcementsData = [];
   let eventsData = [];
   let facilitiesData = [];
@@ -557,7 +555,7 @@
   //  LANGUAGE & TRANSLATIONS
   // ============================================================
   async function loadLanguages() {
-    const { data, error } = await supabase.from('languages').select('*').order('is_default', { ascending: false });
+    const { data, error } = await window.supabaseClient.from('languages').select('*').order('is_default', { ascending: false });
     if (error) { console.error('Load languages error:', error); return; }
     languages = data || [];
     const sel = document.getElementById('lang-selector');
@@ -573,12 +571,12 @@
   }
 
   async function loadStaticTranslations() {
-    const { data, error } = await supabase.from('translations').select('key, translation').eq('language_code', currentLang);
+    const { data, error } = await window.supabaseClient.from('translations').select('key, translation').eq('language_code', currentLang);
     if (error) { console.error('Load translations error:', error); return; }
     staticTranslations = {};
     (data || []).forEach(row => { staticTranslations[row.key] = row.translation; });
     applyStaticTranslations();
-    // Re-render all dynamic content (the UI uses t() and tl())
+    // Render all once translations are loaded (data may be empty, but renderAll will handle empty states)
     renderAll();
   }
 
@@ -591,7 +589,6 @@
     });
     document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
     document.documentElement.lang = currentLang;
-    // Update language selector
     const sel = document.getElementById('lang-selector');
     if (sel) sel.value = currentLang;
   }
@@ -601,41 +598,33 @@
   // ============================================================
   async function fetchAllData() {
     try {
-      // Camp settings
-      const { data: settings } = await supabase.from('camp_settings').select('*').limit(1);
+      const { data: settings } = await window.supabaseClient.from('camp_settings').select('*').limit(1);
       campSettings = settings?.[0] || {};
-      // Prayer times
-      const { data: prayers } = await supabase.from('prayer_times').select('*');
+      const { data: prayers } = await window.supabaseClient.from('prayer_times').select('*');
       prayerTimesData = prayers?.sort((a,b) => PRAYER_ORDER.indexOf(a.name) - PRAYER_ORDER.indexOf(b.name)) || [];
-      // Announcements
-      const { data: anns } = await supabase.from('announcements').select('*').order('date', { ascending: false });
+      const { data: anns } = await window.supabaseClient.from('announcements').select('*').order('date', { ascending: false });
       announcementsData = anns || [];
-      // Events
-      const { data: evs } = await supabase.from('events').select('*').order('timeVal', { ascending: true });
+      const { data: evs } = await window.supabaseClient.from('events').select('*').order('timeVal', { ascending: true });
       eventsData = evs || [];
-      // Facilities
-      const { data: facs } = await supabase.from('facilities').select('*');
+      const { data: facs } = await window.supabaseClient.from('facilities').select('*');
       facilitiesData = facs || [];
-      // Menu
-      const { data: menuRows } = await supabase.from('menu').select('*');
+      const { data: menuRows } = await window.supabaseClient.from('menu').select('*');
       menuData = {};
       (menuRows || []).forEach(row => {
         if (!menuData[row.day]) menuData[row.day] = {};
         menuData[row.day][row.meal] = row.items;
       });
-      // Transport
-      const { data: tr } = await supabase.from('transport').select('*');
+      const { data: tr } = await window.supabaseClient.from('transport').select('*');
       transportData = tr || [];
-      // Contacts
-      const { data: ct } = await supabase.from('contacts').select('*');
+      const { data: ct } = await window.supabaseClient.from('contacts').select('*');
       contactsData = ct || [];
-      // Weather override
       if (campSettings) {
         manualWeather.override = campSettings.weather_override || false;
         manualWeather.condition = campSettings.weather_condition || 'sunny';
         manualWeather.temp = campSettings.weather_temp || '42°C';
         owmApiKey = campSettings.owm_api_key || '';
       }
+      // Re‑render after data fetch
       renderAll();
     } catch (err) {
       console.error('Fetch data error:', err);
@@ -647,6 +636,14 @@
   //  RENDER FUNCTIONS
   // ============================================================
   function renderPrayerTimes() {
+    // ---- SAFETY GUARD ----
+    if (!prayerTimesData || !Array.isArray(prayerTimesData) || prayerTimesData.length === 0) {
+      document.getElementById('prayer-grid').innerHTML = 
+        '<div style="text-align:center;color:var(--text-dim);padding:10px;font-size:0.75rem;">No prayer times available</div>';
+      document.getElementById('next-prayer-pill').innerText = '--:--';
+      return;
+    }
+
     const now = new Date();
     const utcHours = now.getUTCHours(), utcMins = now.getUTCMinutes();
     const omanHours = (utcHours + 4) % 24;
@@ -659,7 +656,6 @@
       let hour = parseInt(p.adhan_time.split(':')[0]);
       let minute = parseInt(p.adhan_time.split(':')[1]);
       if (isNaN(hour) || isNaN(minute)) return { ...p, displayName, displayTime: p.adhan_time, displayHour: 0, displayMinute: 0 };
-      // Convert 12‑h to 24‑h for afternoon prayers
       if ((p.name === 'Asr' || p.name === 'Maghrib' || p.name === 'Isha' || p.name === 'Dhuhr') && hour < 12) hour += 12;
       const displayTime = String(hour).padStart(2,'0') + ':' + String(minute).padStart(2,'0');
       return { ...p, displayName, displayTime, displayHour: hour, displayMinute: minute };
@@ -1057,8 +1053,8 @@
   //  INIT
   // ============================================================
   async function init() {
-    await loadLanguages();
-    await fetchAllData();
+    await loadLanguages();          // loads translations, calls renderAll (with empty data)
+    await fetchAllData();           // fetches all real data and calls renderAll again
     fetchLiveWeather();
     setInterval(fetchLiveWeather, 900000);
     setInterval(() => {
