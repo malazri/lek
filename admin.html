@@ -6,9 +6,11 @@
   <title>BaseCamp Admin Dashboard</title>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
   <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
   <style>
-    /* ===== All styles ===== */
+    /* ===== All styles (same as before with minor additions) ===== */
     :root {
       --bg: #0a0d13;
       --surface: #121826;
@@ -286,12 +288,23 @@
       border: 1px solid var(--border);
       border-radius: var(--r-lg);
       padding: 30px;
-      max-width: 400px;
+      max-width: 600px;
       width: 90%;
+      max-height: 90vh;
+      overflow-y: auto;
     }
     .modal-card h2 { font-family: var(--font-display); margin-bottom: 16px; display: flex; align-items: center; gap: 8px; }
     .modal-card .form-group:last-child { margin-bottom: 0; }
     .login-status { margin-top: 12px; font-size: 0.8rem; color: var(--text-muted); text-align: center; }
+
+    .map-box { width: 100%; height: 280px; background: var(--surface-2); border-radius: var(--r-md); overflow: hidden; border: 1px solid var(--border-soft); margin-bottom: 12px; }
+    #picker-map { width: 100%; height: 100%; }
+    .leaflet-div-icon { background: none; border: none; }
+    .geo-pin { width: 28px; height: 28px; border-radius: 50% 50% 50% 0; transform: rotate(-45deg); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(0,0,0,0.5); border: 2px solid rgba(10,13,19,0.5); background: var(--amber); }
+    .geo-pin i { transform: rotate(45deg); color: #0a0d13; font-size: 0.75rem; }
+
+    .icon-preview { display: inline-flex; align-items: center; gap: 8px; }
+    .icon-preview i { font-size: 1.2rem; color: var(--amber); }
 
     @media (max-width: 768px) {
       .admin-sidebar { width: 60px; padding: 12px 0; }
@@ -373,7 +386,7 @@
       </div>
     </div>
 
-    <!-- LANGUAGES (unchanged) -->
+    <!-- LANGUAGES -->
     <div id="tab-languages" class="tab-pane">
       <div class="admin-card">
         <h3><i class="fa-solid fa-language"></i> Languages</h3>
@@ -389,7 +402,7 @@
       </div>
     </div>
 
-    <!-- TRANSLATIONS (unchanged) -->
+    <!-- TRANSLATIONS -->
     <div id="tab-translations" class="tab-pane">
       <div class="admin-card">
         <h3><i class="fa-solid fa-font"></i> Static Translations</h3>
@@ -442,7 +455,7 @@
             <div class="form-group"><label>Category</label><input type="text" id="ev-category" class="form-control" placeholder="Category"></div>
           </div>
           <div class="form-row">
-            <div class="form-group"><label>Date &amp; Time</label><input type="text" id="ev-date" class="form-control" placeholder="Today, 19:30"></div>
+            <div class="form-group"><label>Date &amp; Time</label><input type="datetime-local" id="ev-datetime" class="form-control"></div>
             <div class="form-group"><label>Location</label><input type="text" id="ev-location" class="form-control" placeholder="Location"></div>
           </div>
           <div class="form-actions">
@@ -462,7 +475,32 @@
           <h4 id="facility-form-title">Add New Facility</h4>
           <div class="form-row">
             <div class="form-group"><label>Name</label><input type="text" id="fac-name" class="form-control" placeholder="Facility name"></div>
-            <div class="form-group"><label>Icon (FontAwesome class)</label><input type="text" id="fac-icon" class="form-control" placeholder="fa-utensils"></div>
+            <div class="form-group"><label>Icon</label>
+              <select id="fac-icon" class="form-control">
+                <option value="fa-utensils">🍽️ fa-utensils</option>
+                <option value="fa-kit-medical">🏥 fa-kit-medical</option>
+                <option value="fa-dumbbell">💪 fa-dumbbell</option>
+                <option value="fa-people-group">👥 fa-people-group</option>
+                <option value="fa-mosque">🕌 fa-mosque</option>
+                <option value="fa-bus">🚌 fa-bus</option>
+                <option value="fa-warehouse">🏢 fa-warehouse</option>
+                <option value="fa-building">🏢 fa-building</option>
+                <option value="fa-shirt">👕 fa-shirt</option>
+                <option value="fa-broom">🧹 fa-broom</option>
+                <option value="fa-droplet">💧 fa-droplet</option>
+                <option value="fa-bed">🛏️ fa-bed</option>
+                <option value="fa-book">📚 fa-book</option>
+                <option value="fa-gamepad">🎮 fa-gamepad</option>
+                <option value="fa-futbol">⚽ fa-futbol</option>
+                <option value="fa-wifi">📶 fa-wifi</option>
+                <option value="fa-store">🏪 fa-store</option>
+                <option value="fa-screwdriver-wrench">🔧 fa-screwdriver-wrench</option>
+                <option value="fa-shield-halved">🛡️ fa-shield-halved</option>
+                <option value="fa-car">🚗 fa-car</option>
+                <option value="fa-gas-pump">⛽ fa-gas-pump</option>
+                <option value="fa-tree">🌳 fa-tree</option>
+              </select>
+            </div>
           </div>
           <div class="form-row">
             <div class="form-group"><label>Latitude</label><input type="text" id="fac-lat" class="form-control" placeholder="22.8750"></div>
@@ -470,6 +508,7 @@
           </div>
           <div class="form-group"><label>Info / Timing</label><textarea id="fac-info" class="form-control" rows="2" placeholder="Timing: 08:00 – 20:00"></textarea></div>
           <div class="form-actions">
+            <button class="btn btn-secondary" onclick="openLocationPicker()"><i class="fa-solid fa-map-location-dot"></i> Pick from Map</button>
             <button class="btn btn-primary" id="fac-submit-btn" onclick="submitFacility()"><i class="fa-solid fa-plus"></i> Add Facility</button>
             <button class="btn btn-secondary" id="fac-cancel-btn" onclick="cancelFacilityEdit()" style="display:none;">Cancel</button>
           </div>
@@ -478,7 +517,7 @@
       </div>
     </div>
 
-    <!-- PRAYER (unchanged) -->
+    <!-- PRAYER -->
     <div id="tab-prayer" class="tab-pane">
       <div class="admin-card">
         <h3><i class="fa-solid fa-mosque"></i> Prayer Times</h3>
@@ -490,7 +529,7 @@
       </div>
     </div>
 
-    <!-- MENU (unchanged) -->
+    <!-- MENU -->
     <div id="tab-menu" class="tab-pane">
       <div class="admin-card">
         <h3><i class="fa-solid fa-utensils"></i> Dining Menu</h3>
@@ -550,7 +589,7 @@
       </div>
     </div>
 
-    <!-- SETTINGS (unchanged) -->
+    <!-- SETTINGS -->
     <div id="tab-settings" class="tab-pane">
       <div class="admin-card">
         <h3><i class="fa-solid fa-sliders"></i> Site Settings</h3>
@@ -567,6 +606,23 @@
       </div>
     </div>
   </main>
+</div>
+
+<!-- LOCATION PICKER MODAL -->
+<div id="location-picker-modal" class="modal-overlay" style="z-index:150;">
+  <div class="modal-card">
+    <div class="modal-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
+      <h2><i class="fa-solid fa-map-location-dot" style="color:var(--amber)"></i> Pick Location</h2>
+      <div class="icon-btn" onclick="closeModal('location-picker-modal')" style="width:38px;height:38px;background:var(--surface-2);border-radius:11px;display:flex;align-items:center;justify-content:center;border:1px solid var(--border-soft);color:var(--text);cursor:pointer;"><i class="fa-solid fa-xmark"></i></div>
+    </div>
+    <p class="note-text" style="font-size:0.75rem;color:var(--text-muted);margin-bottom:12px;">Click on the map to drop a pin, or drag the existing pin. Coordinates will update automatically.</p>
+    <div class="map-box"><div id="picker-map"></div></div>
+    <div id="picker-coords-display" style="text-align:center;font-family:var(--font-mono);font-size:0.85rem;margin:12px 0;color:var(--text-muted);">No location selected</div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap;">
+      <button class="btn btn-primary" onclick="confirmPickerLocation()"><i class="fa-solid fa-check"></i> Use This Location</button>
+      <button class="btn btn-secondary" onclick="closeModal('location-picker-modal')">Cancel</button>
+    </div>
+  </div>
 </div>
 
 <script>
@@ -608,12 +664,25 @@
   const DAYS = ['Sat','Sun','Mon','Tue','Wed','Thu','Fri'];
   const MEALS = ['Breakfast','Lunch','Dinner'];
 
+  // Data arrays
+  let announcementsData = [];
+  let eventsData = [];
+  let facilitiesData = [];
+  let transportData = [];
+  let contactsData = [];
+
   // Edit states
   let editingAnnouncementId = null;
   let editingEventId = null;
   let editingFacilityId = null;
   let editingTransportId = null;
   let editingContactId = null;
+
+  // Map picker state
+  let pickerMap = null;
+  let pickerMarker = null;
+  let pickerLat = null;
+  let pickerLng = null;
 
   // ============================================================
   //  HELPERS
@@ -626,6 +695,9 @@
     clearTimeout(t._timer);
     t._timer = setTimeout(() => { t.style.display = 'none'; }, 4000);
   }
+
+  function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+  function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
   // ============================================================
   //  AUTH
@@ -839,7 +911,7 @@
   }
 
   // ============================================================
-  //  STATIC TRANSLATIONS (unchanged)
+  //  STATIC TRANSLATIONS
   // ============================================================
   async function loadStaticKeys() {
     try {
@@ -934,10 +1006,8 @@
   }
 
   // ============================================================
-  //  ANNOUNCEMENTS – with form and translation toggle
+  //  ANNOUNCEMENTS
   // ============================================================
-  let announcementsData = [];
-
   async function loadAnnouncementsAdmin() {
     try {
       const { data, error } = await window.supabaseClient.from('announcements').select('*').order('date', { ascending: false });
@@ -977,9 +1047,7 @@
         </div>
       </div>
     `).join('');
-    announcementsData.forEach(a => {
-      renderAnnouncementTranslations(a.id);
-    });
+    announcementsData.forEach(a => renderAnnouncementTranslations(a.id));
   }
 
   function renderAnnouncementTranslations(id) {
@@ -1055,14 +1123,11 @@
     const date = document.getElementById('ann-date').value || new Date().toISOString().split('T')[0];
     if (!title || !desc) { toast('Error', 'Title and description required.'); return; }
 
-    const submitBtn = document.getElementById('ann-submit-btn');
     if (editingAnnouncementId) {
-      // Update
       window.supabaseClient.from('announcements').update({ title, description: desc, location, date }).eq('id', editingAnnouncementId)
         .then(() => { toast('Updated', 'Announcement updated.'); cancelAnnouncementEdit(); loadAnnouncementsAdmin(); })
         .catch(err => toast('Error', err.message));
     } else {
-      // Insert
       window.supabaseClient.from('announcements').insert({ title, description: desc, location, date, translations: {} })
         .then(() => { toast('Added', 'Announcement created.'); clearAnnouncementForm(); loadAnnouncementsAdmin(); })
         .catch(err => toast('Error', err.message));
@@ -1109,10 +1174,8 @@
   }
 
   // ============================================================
-  //  EVENTS – with form and translation toggle
+  //  EVENTS (with datetime picker)
   // ============================================================
-  let eventsData = [];
-
   async function loadEventsAdmin() {
     try {
       const { data, error } = await window.supabaseClient.from('events').select('*').order('timeVal', { ascending: true });
@@ -1214,17 +1277,18 @@
   function submitEvent() {
     const title = document.getElementById('ev-title').value.trim();
     const category = document.getElementById('ev-category').value.trim() || 'Community';
-    const date = document.getElementById('ev-date').value.trim();
+    const datetime = document.getElementById('ev-datetime').value;
     const location = document.getElementById('ev-location').value.trim();
-    if (!title || !date || !location) { toast('Error', 'Title, date/time, and location required.'); return; }
+    if (!title || !datetime || !location) { toast('Error', 'Title, date/time, and location required.'); return; }
+    const dateDisplay = new Date(datetime).toLocaleString();
+    const timeVal = new Date(datetime).getTime();
 
-    const timeVal = Date.now() + 86400000;
     if (editingEventId) {
-      window.supabaseClient.from('events').update({ title, category, date, location }).eq('id', editingEventId)
+      window.supabaseClient.from('events').update({ title, category, date: dateDisplay, location, timeVal }).eq('id', editingEventId)
         .then(() => { toast('Updated', 'Event updated.'); cancelEventEdit(); loadEventsAdmin(); })
         .catch(err => toast('Error', err.message));
     } else {
-      window.supabaseClient.from('events').insert({ title, category, date, location, timeVal, icon: 'fa-calendar-days', live: false, translations: {} })
+      window.supabaseClient.from('events').insert({ title, category, date: dateDisplay, location, timeVal, icon: 'fa-calendar-days', live: false, translations: {} })
         .then(() => { toast('Added', 'Event created.'); clearEventForm(); loadEventsAdmin(); })
         .catch(err => toast('Error', err.message));
     }
@@ -1236,7 +1300,10 @@
     editingEventId = id;
     document.getElementById('ev-title').value = e.title;
     document.getElementById('ev-category').value = e.category;
-    document.getElementById('ev-date').value = e.date;
+    // Convert display date to datetime-local format
+    const dateObj = new Date(e.timeVal);
+    const iso = dateObj.toISOString().slice(0,16);
+    document.getElementById('ev-datetime').value = iso;
     document.getElementById('ev-location').value = e.location;
     document.getElementById('event-form-title').textContent = 'Edit Event';
     document.getElementById('ev-submit-btn').innerHTML = '<i class="fa-solid fa-save"></i> Update Event';
@@ -1254,7 +1321,7 @@
   function clearEventForm() {
     document.getElementById('ev-title').value = '';
     document.getElementById('ev-category').value = '';
-    document.getElementById('ev-date').value = '';
+    document.getElementById('ev-datetime').value = '';
     document.getElementById('ev-location').value = '';
   }
 
@@ -1270,10 +1337,8 @@
   }
 
   // ============================================================
-  //  FACILITIES – with form and translation toggle
+  //  FACILITIES (with map picker and icon dropdown)
   // ============================================================
-  let facilitiesData = [];
-
   async function loadFacilitiesAdmin() {
     try {
       const { data, error } = await window.supabaseClient.from('facilities').select('*');
@@ -1374,7 +1439,7 @@
 
   function submitFacility() {
     const name = document.getElementById('fac-name').value.trim();
-    const icon = document.getElementById('fac-icon').value.trim() || 'fa-utensils';
+    const icon = document.getElementById('fac-icon').value;
     const info = document.getElementById('fac-info').value.trim();
     const lat = parseFloat(document.getElementById('fac-lat').value) || 22.8750;
     const lng = parseFloat(document.getElementById('fac-lng').value) || 55.3700;
@@ -1416,7 +1481,7 @@
 
   function clearFacilityForm() {
     document.getElementById('fac-name').value = '';
-    document.getElementById('fac-icon').value = '';
+    document.getElementById('fac-icon').value = 'fa-utensils';
     document.getElementById('fac-info').value = '';
     document.getElementById('fac-lat').value = '';
     document.getElementById('fac-lng').value = '';
@@ -1431,6 +1496,70 @@
     } catch (err) {
       toast('Error', err.message);
     }
+  }
+
+  // ============================================================
+  //  LOCATION PICKER (for facilities)
+  // ============================================================
+  function openLocationPicker() {
+    // Get current lat/lng from form
+    const lat = parseFloat(document.getElementById('fac-lat').value) || 22.8750;
+    const lng = parseFloat(document.getElementById('fac-lng').value) || 55.3700;
+    openModal('location-picker-modal');
+    setTimeout(() => {
+      if (typeof L === 'undefined') {
+        document.getElementById('picker-map').innerHTML = `
+          <div style="display:flex;align-items:center;justify-content:center;height:100%;padding:16px;text-align:center;font-size:0.75rem;color:var(--text-dim);">
+            <span><i class="fa-solid fa-map-location-dot" style="display:block;font-size:1.4rem;margin-bottom:8px;color:var(--text-dim);"></i>Map library not loaded — please reload.</span>
+          </div>
+        `;
+        return;
+      }
+      if (!pickerMap) {
+        pickerMap = L.map('picker-map', { zoomControl: false }).setView([lat, lng], 17);
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+          attribution: 'Tiles &copy; Esri',
+          maxZoom: 19
+        }).addTo(pickerMap);
+        L.control.zoom({ position: 'bottomright' }).addTo(pickerMap);
+        pickerMap.on('click', e => placePickerMarker(e.latlng.lat, e.latlng.lng));
+      } else {
+        pickerMap.setView([lat, lng], 17);
+      }
+      placePickerMarker(lat, lng);
+    }, 200);
+  }
+
+  function placePickerMarker(lat, lng) {
+    pickerLat = lat;
+    pickerLng = lng;
+    if (pickerMarker) {
+      pickerMarker.setLatLng([lat, lng]);
+    } else {
+      const icon = L.divIcon({
+        className: '',
+        html: `<div class="geo-pin"><i class="fa-solid fa-location-dot"></i></div>`,
+        iconSize: [28,28],
+        iconAnchor: [14,28]
+      });
+      pickerMarker = L.marker([lat, lng], { draggable: true, icon }).addTo(pickerMap);
+      pickerMarker.on('dragend', () => {
+        const p = pickerMarker.getLatLng();
+        placePickerMarker(p.lat, p.lng);
+      });
+    }
+    document.getElementById('picker-coords-display').textContent = lat.toFixed(6) + ', ' + lng.toFixed(6);
+  }
+
+  function confirmPickerLocation() {
+    if (pickerLat === null || pickerLng === null) {
+      toast('Error', 'No location selected. Click on the map first.');
+      return;
+    }
+    document.getElementById('fac-lat').value = pickerLat.toFixed(6);
+    document.getElementById('fac-lng').value = pickerLng.toFixed(6);
+    closeModal('location-picker-modal');
+    toast('Location Set', 'Coordinates updated.');
   }
 
   // ============================================================
@@ -1615,10 +1744,8 @@
   }
 
   // ============================================================
-  //  TRANSPORT – with form
+  //  TRANSPORT (with form)
   // ============================================================
-  let transportData = [];
-
   async function loadTransportAdmin() {
     try {
       const { data, error } = await window.supabaseClient.from('transport').select('*');
@@ -1707,10 +1834,8 @@
   }
 
   // ============================================================
-  //  CONTACTS – with form
+  //  CONTACTS (with form)
   // ============================================================
-  let contactsData = [];
-
   async function loadContactsAdmin() {
     try {
       const { data, error } = await window.supabaseClient.from('contacts').select('*');
@@ -1853,60 +1978,59 @@
   }
 
   // ============================================================
-  //  TOGGLE TRANSLATIONS (global function)
-  // ============================================================
-  window.toggleTranslations = function(type, id) {
-    const section = document.getElementById(type + '-trans-' + id);
-    if (!section) return;
-    const isOpen = section.classList.contains('open');
-    section.classList.toggle('open');
-    const btn = section.closest('.admin-item').querySelector('.translation-toggle-btn span');
-    if (btn) btn.textContent = isOpen ? 'Show Translations' : 'Hide Translations';
-  };
-
-  // ============================================================
   //  INIT
   // ============================================================
   document.addEventListener('DOMContentLoaded', checkSession);
 
-  // Expose globals
+  // Expose all functions to global scope
   window.addLanguage = addLanguage;
   window.setDefaultLanguage = setDefaultLanguage;
   window.deleteLanguage = deleteLanguage;
   window.saveLanguageEdit = saveLanguageEdit;
   window.autoTranslateStatic = autoTranslateStatic;
   window.addNewTranslationKey = addNewTranslationKey;
+
   window.submitAnnouncement = submitAnnouncement;
   window.editAnnouncement = editAnnouncement;
   window.cancelAnnouncementEdit = cancelAnnouncementEdit;
   window.deleteAnnouncement = deleteAnnouncement;
   window.switchAnnouncementLang = switchAnnouncementLang;
+
   window.submitEvent = submitEvent;
   window.editEvent = editEvent;
   window.cancelEventEdit = cancelEventEdit;
   window.deleteEvent = deleteEvent;
   window.switchEventLang = switchEventLang;
+
   window.submitFacility = submitFacility;
   window.editFacility = editFacility;
   window.cancelFacilityEdit = cancelFacilityEdit;
   window.deleteFacility = deleteFacility;
   window.switchFacilityLang = switchFacilityLang;
+  window.openLocationPicker = openLocationPicker;
+  window.confirmPickerLocation = confirmPickerLocation;
+  window.closeModal = closeModal;
+
   window.savePrayerTimes = savePrayerTimes;
   window.fetchPrayerTimesWorker = fetchPrayerTimesWorker;
   window.setAdminDay = setAdminDay;
   window.saveMenuDay = saveMenuDay;
+
   window.submitTransport = submitTransport;
   window.editTransport = editTransport;
   window.cancelTransportEdit = cancelTransportEdit;
   window.deleteTransport = deleteTransport;
+
   window.submitContact = submitContact;
   window.editContact = editContact;
   window.cancelContactEdit = cancelContactEdit;
   window.deleteContact = deleteContact;
+
   window.saveSettings = saveSettings;
   window.login = login;
   window.logout = logout;
   window.renderStaticTranslations = renderStaticTranslations;
+  window.toggleTranslations = toggleTranslations;
 </script>
 </body>
 </html>
