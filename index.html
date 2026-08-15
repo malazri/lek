@@ -185,11 +185,58 @@
     .leaflet-control-attribution a { color: var(--sand) !important; }
     .map-info-box { margin-top: 10px; padding: 11px; background: var(--surface-2); border-radius: 10px; font-size: 0.76rem; color: var(--text-muted); border: 1px solid var(--border-soft); line-height: 1.5; }
     .map-info-box strong { color: var(--text); font-family: var(--font-display); }
-    .facility-list-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 12px; background: var(--surface-2); border-radius: 10px; border: 1px solid var(--border-soft); margin-top: 8px; cursor: pointer; }
-    .facility-list-row .fl-name { font-size: 0.8rem; font-weight: 600; display: flex; align-items: center; gap: 9px; }
+    .facility-list-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 10px 12px;
+      background: var(--surface-2);
+      border-radius: 10px;
+      border: 1px solid var(--border-soft);
+      margin-top: 8px;
+      gap: 8px;
+    }
+    .facility-list-row .fl-left {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+      flex: 1;
+      min-width: 0;
+      cursor: pointer;
+    }
+    .facility-list-row .fl-name {
+      font-size: 0.8rem;
+      font-weight: 600;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
     .facility-list-row .fl-name i { color: var(--amber); width: 16px; }
-    .facility-list-row .fl-time { font-family: var(--font-mono); font-size: 0.68rem; color: var(--text-muted); }
-
+    .facility-list-row .fl-time {
+      font-family: var(--font-mono);
+      font-size: 0.68rem;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+    .facility-list-row .fl-directions {
+      background: var(--surface-3);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      width: 30px;
+      height: 30px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--amber);
+      cursor: pointer;
+      transition: 0.15s;
+      flex-shrink: 0;
+    }
+    .facility-list-row .fl-directions:hover {
+      background: var(--amber-soft);
+      border-color: var(--amber);
+    }
+    .facility-list-row .fl-directions i { font-size: 0.75rem; }
     .day-tabs { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 12px; padding-bottom: 2px; }
     .day-tab { font-size: 0.68rem; font-weight: 700; font-family: var(--font-mono); padding: 7px 11px; border-radius: 9px; background: var(--surface-3); color: var(--text-muted); border: 1px solid var(--border-soft); cursor: pointer; white-space: nowrap; }
     .day-tab.active { background: var(--amber); color: #1a0d02; border-color: var(--amber); }
@@ -520,7 +567,7 @@
   let manualWeather = { temp: '42°C', condition: 'sunny', override: false };
   let owmApiKey = localStorage.getItem('basecamp_owm_key') || '';
   const PRAYER_ORDER = ['Fajr','Dhuhr','Asr','Maghrib','Isha'];
-  const CAMP_LAT = 22.8750, CAMP_LNG = 55.3700;
+  const CAMP_LAT = 22.832927, CAMP_LNG = 55.325941;
   let lastScrollTop = 0;
 
   // ============================================================
@@ -886,13 +933,26 @@
     const container = document.getElementById('facility-list-container');
     container.innerHTML = facilitiesData.map(p => {
       const firstLine = tl(p, 'info', currentLang).split('\n')[0];
-      return `<div class="facility-list-row" onclick="focusFacility(${p.id})">
-        <span class="fl-name"><i class="fa-solid ${p.icon}"></i>${tl(p, 'name', currentLang)}</span>
-        <span class="fl-time">${firstLine.replace('Timing: ','')}</span>
-      </div>`;
+      const name = tl(p, 'name', currentLang);
+      return `
+        <div class="facility-list-row">
+          <div class="fl-left" onclick="focusFacility(${p.id})">
+            <span class="fl-name"><i class="fa-solid ${p.icon}"></i>${name}</span>
+            <span class="fl-time">${firstLine.replace('Timing: ','')}</span>
+          </div>
+          <div class="fl-directions" onclick="event.stopPropagation(); openFacilityDirections(${p.lat}, ${p.lng}, '${name}')" title="Get Directions">
+            <i class="fa-solid fa-directions"></i>
+          </div>
+        </div>
+      `;
     }).join('');
   }
 
+  function openFacilityDirections(lat, lng, name) {
+    const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&destination_place_id=`;
+    window.open(url, '_blank');
+  }
+  
   function focusFacility(id) {
     const p = facilitiesData.find(pl => pl.id === id);
     if (!p) return;
@@ -1079,6 +1139,7 @@
   window.setDay = setDay;
   window.focusFacility = focusFacility;
   window.renderPrayerTimes = renderPrayerTimes;
+  window.openFacilityDirections = openFacilityDirections;
 </script>
 </body>
 </html>
