@@ -187,9 +187,9 @@
     .map-info-box strong { color: var(--text); font-family: var(--font-display); }
     .facility-list-row {
       display: flex;
-      align-items: center;
+      align-items: flex-start;
       justify-content: space-between;
-      padding: 10px 12px;
+      padding: 12px 14px;
       background: var(--surface-2);
       border-radius: 10px;
       border: 1px solid var(--border-soft);
@@ -198,32 +198,33 @@
     }
     .facility-list-row .fl-left {
       display: flex;
-      align-items: center;
-      gap: 9px;
+      flex-direction: column;
       flex: 1;
       min-width: 0;
       cursor: pointer;
+      gap: 2px;
     }
     .facility-list-row .fl-name {
-      font-size: 0.8rem;
+      font-size: 0.9rem;
       font-weight: 600;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
+      display: flex;
+      align-items: center;
+      gap: 8px;
     }
-    .facility-list-row .fl-name i { color: var(--amber); width: 16px; }
-    .facility-list-row .fl-time {
-      font-family: var(--font-mono);
-      font-size: 0.68rem;
+    .facility-list-row .fl-name i { color: var(--amber); width: 18px; }
+    .facility-list-row .fl-info {
+      font-size: 0.78rem;
       color: var(--text-muted);
-      white-space: nowrap;
+      line-height: 1.4;
+      white-space: normal;
+      word-wrap: break-word;
     }
     .facility-list-row .fl-directions {
       background: var(--surface-3);
       border: 1px solid var(--border);
       border-radius: 8px;
-      width: 30px;
-      height: 30px;
+      width: 32px;
+      height: 32px;
       display: flex;
       align-items: center;
       justify-content: center;
@@ -231,12 +232,13 @@
       cursor: pointer;
       transition: 0.15s;
       flex-shrink: 0;
+      margin-top: 2px;
     }
     .facility-list-row .fl-directions:hover {
       background: var(--amber-soft);
       border-color: var(--amber);
     }
-    .facility-list-row .fl-directions i { font-size: 0.75rem; }
+    .facility-list-row .fl-directions i { font-size: 0.8rem; }
     .day-tabs { display: flex; gap: 6px; overflow-x: auto; margin-bottom: 12px; padding-bottom: 2px; }
     .day-tab { font-size: 0.68rem; font-weight: 700; font-family: var(--font-mono); padding: 7px 11px; border-radius: 9px; background: var(--surface-3); color: var(--text-muted); border: 1px solid var(--border-soft); cursor: pointer; white-space: nowrap; }
     .day-tab.active { background: var(--amber); color: #1a0d02; border-color: var(--amber); }
@@ -932,13 +934,15 @@
   function renderFacilityList() {
     const container = document.getElementById('facility-list-container');
     container.innerHTML = facilitiesData.map(p => {
-      const firstLine = tl(p, 'info', currentLang).split('\n')[0];
       const name = tl(p, 'name', currentLang);
+      const info = tl(p, 'info', currentLang);
+      // Show first line of info as a shortened description (or full info)
+      const shortInfo = info.split('\n').join(' · '); // or just info
       return `
         <div class="facility-list-row">
           <div class="fl-left" onclick="focusFacility(${p.id})">
-            <span class="fl-name"><i class="fa-solid ${p.icon}"></i>${name}</span>
-            <span class="fl-time">${firstLine.replace('Timing: ','')}</span>
+            <div class="fl-name"><i class="fa-solid ${p.icon}"></i>${name}</div>
+            <div class="fl-info">${shortInfo}</div>
           </div>
           <div class="fl-directions" onclick="event.stopPropagation(); openFacilityDirections(${p.lat}, ${p.lng}, '${name}')" title="Get Directions">
             <i class="fa-solid fa-directions"></i>
