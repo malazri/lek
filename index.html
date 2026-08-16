@@ -799,30 +799,55 @@
   function setFilter(cat) { activeFilter = cat; renderEventFilters(); renderEvents(); }
 
   function renderEvents() {
-    const sorted = [...eventsData].sort((a,b) => a.timeVal - b.timeVal);
-    if (sorted.length > 0) {
-      const first = sorted[0];
-      document.getElementById('next-event-name').innerText = tl(first, 'title', currentLang);
-      document.getElementById('next-event-time-desc').innerHTML =
-        `<i class="fa-solid fa-location-dot"></i> ${tl(first, 'location', currentLang)} &bull; <i class="fa-regular fa-clock"></i> ${first.date}`;
-      document.getElementById('next-event-tag').innerText = first.category;
-      nextEventTimestamp = first.timeVal;
-    }
-    const list = activeFilter === 'All' ? sorted : sorted.filter(e => e.category === activeFilter);
-    document.getElementById('events-container').innerHTML = list.map(ev => `
-      <div class="event-row">
-        <div class="event-icon"><i class="fa-solid ${ev.icon || 'fa-calendar-days'}"></i></div>
-        <div class="event-body">
-          <h4>${ev.live ? '<span class=\"live-dot\"></span>' : ''}${tl(ev, 'title', currentLang)}</h4>
-          <div class="meta">
-            <span><i class="fa-regular fa-calendar-days"></i> ${ev.date}</span>
-            <span><i class="fa-solid fa-location-dot"></i> ${tl(ev, 'location', currentLang)}</span>
+      const now = Date.now();
+      // Filter upcoming events (timeVal > now)
+      const upcoming = eventsData.filter(e => e.timeVal > now).sort((a, b) => a.timeVal - b.timeVal);
+      const hasUpcoming = upcoming.length > 0;
+    
+      // Show/hide countdown card
+      const countdownCard = document.querySelector('.card-countdown');
+      if (countdownCard) {
+        countdownCard.style.display = hasUpcoming ? 'block' : 'none';
+      }
+    
+      if (hasUpcoming) {
+        const first = upcoming[0];
+        document.getElementById('next-event-name').innerText = tl(first, 'title', currentLang);
+        document.getElementById('next-event-time-desc').innerHTML =
+          `<i class="fa-solid fa-location-dot"></i> ${tl(first, 'location', currentLang)} &bull; <i class="fa-regular fa-clock"></i> ${first.date}`;
+        document.getElementById('next-event-tag').innerText = first.category;
+        nextEventTimestamp = first.timeVal;
+      } else {
+        // No upcoming events – we still need to set nextEventTimestamp to 0 so countdown stops
+        nextEventTimestamp = 0;
+      }
+    
+      // Render event list (only upcoming)
+      const list = activeFilter === 'All' ? upcoming : upcoming.filter(e => e.category === activeFilter);
+      const container = document.getElementById('events-container');
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div style="text-align:center;padding:20px 10px;color:var(--text-muted);font-size:0.85rem;">
+            <i class="fa-regular fa-calendar-circle-plus" style="font-size:1.4rem;display:block;margin-bottom:8px;color:var(--text-dim);"></i>
+            No upcoming events
           </div>
-        </div>
-      </div>
-    `).join('');
-  }
-
+        `;
+      } else {
+        container.innerHTML = list.map(ev => `
+          <div class="event-row">
+            <div class="event-icon"><i class="fa-solid ${ev.icon || 'fa-calendar-days'}"></i></div>
+            <div class="event-body">
+              <h4>${ev.live ? '<span class=\"live-dot\"></span>' : ''}${tl(ev, 'title', currentLang)}</h4>
+              <div class="meta">
+                <span><i class="fa-regular fa-calendar-days"></i> ${ev.date}</span>
+                <span><i class="fa-solid fa-location-dot"></i> ${tl(ev, 'location', currentLang)}</span>
+              </div>
+            </div>
+          </div>
+        `).join('');
+      }
+    }
+  
   function renderDayTabs() {
     const days = Object.keys(menuData);
     if (days.length === 0) return;
@@ -956,7 +981,7 @@
     const url = `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}&destination_place_id=`;
     window.open(url, '_blank');
   }
-  
+
   function focusFacility(id) {
     const p = facilitiesData.find(pl => pl.id === id);
     if (!p) return;
@@ -1040,18 +1065,30 @@
   //  COUNTDOWN
   // ============================================================
   function updateCountdown() {
-    const now = Date.now();
-    const distance = nextEventTimestamp - now;
-    if (distance < 0) return;
-    const days = Math.floor(distance / (1000*60*60*24));
-    const hours = Math.floor((distance % (1000*60*60*24)) / (1000*60*60));
-    const mins = Math.floor((distance % (1000*60*60)) / (1000*60));
-    const secs = Math.floor((distance % (1000*60)) / 1000);
-    document.getElementById('cd-days').innerText = String(days).padStart(2,'0');
-    document.getElementById('cd-hours').innerText = String(hours).padStart(2,'0');
-    document.getElementById('cd-mins').innerText = String(mins).padStart(2,'0');
-    document.getElementById('cd-secs').innerText = String(secs).padStart(2,'0');
-  }
+      if (!nextEventTimestamp) {
+        // No upcoming event – display zeros or hide
+        document.getElementById('cd-days').innerText = '00';
+        document.getElementById('cd-hours').innerText = '00';
+        document.getElementById('cd-mins').innerText = '00';
+        document.getElementById('cd-secs').innerText = '00';
+        return;
+      }
+      const now = Date.now();
+      const distance = nextEventTimestamp - now;
+      if (distance < 0) {
+        // Event has passed – we should re‑run renderEvents to refresh
+        renderEvents();
+        return;
+      }
+      const days = Math.floor(distance / (1000*60*60*24));
+      const hours = Math.floor((distance % (1000*60*60*24)) / (1000*60*60));
+      const mins = Math.floor((distance % (1000*60*60)) / (1000*60));
+      const secs = Math.floor((distance % (1000*60)) / 1000);
+      document.getElementById('cd-days').innerText = String(days).padStart(2,'0');
+      document.getElementById('cd-hours').innerText = String(hours).padStart(2,'0');
+      document.getElementById('cd-mins').innerText = String(mins).padStart(2,'0');
+      document.getElementById('cd-secs').innerText = String(secs).padStart(2,'0');
+    }
 
   // ============================================================
   //  NAVIGATION
